@@ -3,40 +3,40 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/login.dart';
 
 void main() {
-  runApp(const UnionApp());
+  runApp(const TaskSparkApp());
 }
 
-class UnionApp extends StatelessWidget {
-  const UnionApp({super.key});
+class TaskSparkApp extends StatelessWidget {
+  const TaskSparkApp({super.key});
   @override
   Widget build(BuildContext context) {
     return ResponsiveSizer(
       builder: (context, orientation, screenType) {
         return MaterialApp(
-          title: 'Union',
+          title: 'TaskSpark',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color.fromARGB(255, 255, 200, 45)),
             useMaterial3: true,
           ),
           debugShowCheckedModeBanner: false,
-          home: const UnionMainPage(title: 'Union'),
+          home: const TaskSparkMainPage(title: 'TaskSpark'),
         );
       },
     );
   }
 }
 
-class UnionMainPage extends StatefulWidget {
-  const UnionMainPage({super.key, required this.title});
+class TaskSparkMainPage extends StatefulWidget {
+  const TaskSparkMainPage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<UnionMainPage> createState() => _UnionMainPageState();
+  State<TaskSparkMainPage> createState() => _TaskSparkMainPageState();
 }
 
-class _UnionMainPageState extends State<UnionMainPage> {
+class _TaskSparkMainPageState extends State<TaskSparkMainPage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
