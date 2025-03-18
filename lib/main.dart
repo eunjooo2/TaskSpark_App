@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/login.dart';
+import 'package:task_spark/ui/pages/main_page.dart';
 
 void main() {
   runApp(const TaskSparkApp());
@@ -16,7 +17,12 @@ class TaskSparkApp extends StatelessWidget {
           title: 'TaskSpark',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color.fromARGB(255, 255, 200, 45)),
+              seedColor: const Color.fromARGB(255, 255, 200, 45),
+              brightness: Brightness.dark,
+            ).copyWith(
+              primary: const Color.fromARGB(255, 255, 200, 45),
+              secondary: const Color.fromARGB(255, 59, 59, 59),
+            ),
             useMaterial3: true,
           ),
           debugShowCheckedModeBanner: false,
@@ -39,8 +45,6 @@ class TaskSparkMainPage extends StatefulWidget {
 class _TaskSparkMainPageState extends State<TaskSparkMainPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: LoginPage(),
-    );
+    return MainPage();
   }
 }
