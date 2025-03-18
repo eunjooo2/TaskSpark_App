@@ -61,6 +61,7 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.shifting,
             items: const [
               BottomNavigationBarItem(
                 icon: FaIcon(FontAwesomeIcons.listCheck),
