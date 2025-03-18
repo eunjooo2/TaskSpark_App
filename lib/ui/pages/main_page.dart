@@ -15,6 +15,8 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController(initialPage: 0);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final List<String> navigationList = ["Tasks", "Friends", "Shop"];
+  String appBarTitle = "";
 
   @override
   void dispose() {
@@ -27,6 +29,13 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
+        title: Text(
+          appBarTitle,
+          style: TextStyle(
+            fontSize: 18.sp,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         leading: Container(
           padding: EdgeInsets.only(left: 3.w),
@@ -62,18 +71,18 @@ class _MainPageState extends State<MainPage> {
           ),
           child: BottomNavigationBar(
             type: BottomNavigationBarType.shifting,
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: FaIcon(FontAwesomeIcons.listCheck),
-                label: "Tasks",
+                icon: const FaIcon(FontAwesomeIcons.listCheck),
+                label: navigationList[0],
               ),
               BottomNavigationBarItem(
-                icon: FaIcon(FontAwesomeIcons.userGroup),
-                label: "Friends",
+                icon: const FaIcon(FontAwesomeIcons.userGroup),
+                label: navigationList[1],
               ),
               BottomNavigationBarItem(
-                icon: FaIcon(FontAwesomeIcons.store),
-                label: "Shop",
+                icon: const FaIcon(FontAwesomeIcons.store),
+                label: navigationList[2],
               ),
             ],
             onTap: (int value) {
@@ -110,6 +119,11 @@ class _MainPageState extends State<MainPage> {
               child: Text("Hello World3"), // 상점 페이지
             );
           }
+        },
+        onPageChanged: (int index) {
+          setState(() {
+            appBarTitle = navigationList[index];
+          });
         },
       ),
     );
