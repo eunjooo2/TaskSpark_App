@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:task_spark/ui/pages/splash.dart';
+import 'package:lottie/lottie.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/login.dart';
 import 'package:task_spark/ui/pages/main_page.dart';
@@ -45,6 +47,6 @@ class TaskSparkMainPage extends StatefulWidget {
 class _TaskSparkMainPageState extends State<TaskSparkMainPage> {
   @override
   Widget build(BuildContext context) {
-    return MainPage();
+    return SplashPage();
   }
 }

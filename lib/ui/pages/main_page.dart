@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_spark/ui/pages/login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/ui/pages/social.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
 
 class MainPage extends StatefulWidget {
@@ -15,7 +16,7 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController(initialPage: 0);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<String> navigationList = ["Tasks", "Friends", "Shop"];
+  final List<String> navigationList = ["Tasks", "Social", "Shop"];
   String appBarTitle = "";
 
   @override
@@ -111,9 +112,7 @@ class _MainPageState extends State<MainPage> {
               child: Text("Hello World1"), // 할 일 리스트 페이지
             );
           } else if (index == 1) {
-            return Center(
-              child: Text("Hello World2"), // 소셜 페이지
-            );
+            return SocialPage();
           } else if (index == 2) {
             return Center(
               child: Text("Hello World3"), // 상점 페이지
