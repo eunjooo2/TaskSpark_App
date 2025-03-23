@@ -31,3 +31,4 @@ flutter:
 
   assets:
     - assets/icons/icon.png
+    - assets/images/default_profile.png
