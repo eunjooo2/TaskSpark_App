@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:task_spark/ui/pages/login.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/social.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
+import 'package:task_spark/ui/pages/splash.dart';
+import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/utils/secure_storage.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({super.key});
@@ -23,6 +25,11 @@ class _MainPageState extends State<MainPage> {
   void dispose() {
     super.dispose();
     _pageController.dispose();
+    printUserID();
+  }
+
+  Future<void> printUserID() async {
+    print(await SecureStorage().storage.read(key: "userID"));
   }
 
   @override
@@ -109,15 +116,42 @@ class _MainPageState extends State<MainPage> {
         itemBuilder: (context, index) {
           if (index == 0) {
             return Center(
-              child: Text("Hello World1"), // 할 일 리스트 페이지
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    child: Text("로그 아웃"),
+                    onPressed: () async {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SplashPage(),
+                        ),
+                      );
+                      PocketB().pocketBase.authStore.clear();
+                    },
+                  ),
+                  SizedBox(height: 5.h),
+                  TextButton(
+                    child: Text("유저 아이디 확인 (콘솔)"),
+                    onPressed: () async {
+                      String userID =
+                          await SecureStorage().storage.read(key: "userID") ??
+                              "";
+                      print(userID);
+                    },
+                  ),
+                ],
+              ),
             );
           } else if (index == 1) {
-            return SocialPage();
+            return SocialPage(); // 소셜 페이지
           } else if (index == 2) {
             return Center(
               child: Text("Hello World3"), // 상점 페이지
             );
           }
+          return null;
         },
         onPageChanged: (int index) {
           setState(() {

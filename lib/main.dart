@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:task_spark/ui/pages/splash.dart';
-import 'package:lottie/lottie.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/ui/pages/login.dart';
-import 'package:task_spark/ui/pages/main_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const TaskSparkApp());
 }
 

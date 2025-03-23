@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/ui/pages/main_page.dart';
+import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/ui/widgets/login_button.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -10,34 +14,48 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final AnimationController _splashController;
+  late final AnimationController _loginButtonsController;
+
+  late final Animation<Offset> _loginButtonsAnimation;
+  bool _showLoginButtons = false;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _splashController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
 
-    // 애니메이션이 끝나면 자동으로 다음 화면으로 이동
-    _controller.addStatusListener((status) {
+    _loginButtonsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _loginButtonsAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _loginButtonsController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _splashController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        _navigateToNextScreen();
+        setState(() {
+          _showLoginButtons = true;
+        });
+        _loginButtonsController.forward();
       }
     });
   }
 
-  void _navigateToNextScreen() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const NextPage()), // 다음 페이지로 이동
-    );
-  }
-
   @override
   void dispose() {
-    _controller.dispose();
+    _splashController.dispose();
+    _loginButtonsController.dispose();
     super.dispose();
   }
 
@@ -46,33 +64,89 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     return Scaffold(
       body: SizedBox.expand(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // 중앙 정렬 추가
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Lottie.network(
-              "https://lottie.host/1b8200fd-39c7-41cf-ac5f-de15715a4fff/ug4cz6Eq75.json",
-              controller: _controller,
-              onLoaded: (composition) {
-                _controller
-                  ..duration = composition.duration
-                  ..forward();
-              },
-              width: 80.w,
+            SlideTransition(
+              position: _loginButtonsAnimation,
+              child: Lottie.network(
+                "https://lottie.host/9f2045f8-5f02-4ccb-8b83-2402fdb77c82/xs7v2QSoEl.json",
+                controller: _splashController,
+                onLoaded: (composition) {
+                  _splashController
+                    ..duration = composition.duration
+                    ..forward();
+                },
+                width: 80.w,
+              ),
             ),
+            _showLoginButtons
+                ? TickerMode(
+                    enabled: _showLoginButtons,
+                    child: SizedBox(
+                      height: 20.h,
+                      child: SlideTransition(
+                        position: _loginButtonsAnimation,
+                        child: FadeTransition(
+                          opacity: _loginButtonsController,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              LoginButton(
+                                backgroundColor: Colors.white,
+                                buttonType: "google",
+                                title: "Google 로그인",
+                                onPressed: () async {
+                                  final authData = await PocketB()
+                                      .sendLoginRequest("google");
+                                  if (authData.token != "") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MainPage(),
+                                      ),
+                                    );
+                                    SecureStorage().storage.write(
+                                          key: "userID",
+                                          value: authData.meta["id"],
+                                        );
+                                  } else {
+                                    // 로그인 실패 다이얼로그 처리
+                                  }
+                                },
+                              ),
+                              LoginButton(
+                                backgroundColor: Colors.yellow,
+                                buttonType: "kakao",
+                                title: "Kakao 로그인",
+                                onPressed: () async {
+                                  final authData =
+                                      await PocketB().sendLoginRequest("kakao");
+                                  if (authData.token != "") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MainPage(),
+                                      ),
+                                    );
+                                    SecureStorage().storage.write(
+                                          key: "userID",
+                                          value: authData.meta["id"],
+                                        );
+                                  } else {
+                                    // 로그인 실패 다이얼로그 처리
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : SizedBox(height: 20.h),
           ],
         ),
       ),
-    );
-  }
-}
-
-// 예제용 다음 페이지
-class NextPage extends StatelessWidget {
-  const NextPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: Text('Next Page', style: TextStyle(fontSize: 24))),
     );
   }
 }
