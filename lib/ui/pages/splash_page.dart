@@ -96,6 +96,13 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "google",
                                 title: "Google 로그인",
                                 onPressed: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MainPage(),
+                                    ),
+                                  );
+                                  /* INFO: 인증 실패 이슈로 주석처리됨
                                   final authData = await PocketB()
                                       .sendLoginRequest("google");
                                   if (authData.token != "") {
@@ -112,6 +119,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                   } else {
                                     // 로그인 실패 다이얼로그 처리
                                   }
+                                   */
                                 },
                               ),
                               LoginButton(
