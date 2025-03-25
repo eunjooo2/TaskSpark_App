@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/ui/pages/shop.dart';
 import 'package:task_spark/ui/pages/social.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
 import 'package:task_spark/ui/pages/splash.dart';
@@ -147,9 +148,7 @@ class _MainPageState extends State<MainPage> {
           } else if (index == 1) {
             return SocialPage(); // 소셜 페이지
           } else if (index == 2) {
-            return Center(
-              child: Text("Hello World3"), // 상점 페이지
-            );
+            return ShopPage();
           }
           return null;
         },

@@ -25,10 +25,9 @@ dev_dependencies:
 
   flutter_lints: ^3.0.0
 
-
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/icon.png
-    - assets/images/default_profile.png
+    - assets/icons/a.png   # a.png 추가
+    - assets/images/default_profile.png  # 기본 프로필 이미지 추가
