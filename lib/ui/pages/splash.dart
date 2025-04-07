@@ -107,7 +107,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     );
                                     SecureStorage().storage.write(
                                           key: "userID",
-                                          value: authData.meta["id"],
+                                          value: authData.record.id,
                                         );
                                   } else {
                                     // 로그인 실패 다이얼로그 처리
@@ -130,7 +130,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     );
                                     SecureStorage().storage.write(
                                           key: "userID",
-                                          value: authData.meta["id"],
+                                          value: authData.record.id,
                                         );
                                   } else {
                                     // 로그인 실패 다이얼로그 처리
