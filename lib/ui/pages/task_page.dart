@@ -2,85 +2,138 @@ import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/utils/models/task.dart';
 
+import '../widgets/task_card.dart';
+
 class TaskPage extends StatefulWidget {
-  const TaskPage({Key? key}) : super(key: key);
+  const TaskPage({super.key});
 
   @override
   State<TaskPage> createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
-  final _sc = ScrollController();
-  final _tasks = List.generate(3, (i) => Task(content: 'Just Breathing.'));
+  final ScrollController _scrollController = ScrollController();
+  final List<Task> _tasks = [];
+  final Map<int, bool> _expanded = {};
   bool _loading = false;
+  int _loadedPages = 0;
+  final int _pageSize = 5;
 
   @override
   void initState() {
     super.initState();
-    _fetch();
-    _sc.addListener(() {
-      if (_sc.position.pixels >= _sc.position.maxScrollExtent * 0.8 && !_loading) {
-        _fetch();
+    _loadInitial();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent * 0.9 &&
+          !_loading) {
+        _fetchMore();
       }
     });
   }
 
-  Future<void> _fetch() async {
+  void _loadInitial() {
+    _tasks.clear();
+    _loadedPages = 0;
+    _fetchMore();
+  }
+
+  Future<void> _fetchMore() async {
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1)); // 실제 API 호출로 대체
+    await Future.delayed(const Duration(seconds: 1)); // TODO: API 호출
+    final newTasks = List.generate(
+      _pageSize,
+          (i) => Task(content: '더미 할 일 ${_loadedPages * _pageSize + i + 1}'),
+    );
     setState(() {
+      _tasks.addAll(newTasks);
+      _loadedPages++;
       _loading = false;
     });
   }
 
   Future<void> _addTask() async {
-    final c = TextEditingController();
-    await showDialog(
+    final controller = TextEditingController();
+    await showModalBottomSheet(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Task'),
-        content: TextField(controller: c, decoration: const InputDecoration(hintText: "Task Content")),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              if (c.text.isNotEmpty) setState(() => _tasks.insert(0, Task(content: c.text)));
-              Navigator.pop(context);
-            },
-            child: const Text('추가'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-        ],
+          padding: EdgeInsets.all(3.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('할 일 추가', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 2.h),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: '무엇을 해야 하나요?'),
+              ),
+              SizedBox(height: 2.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (controller.text.isNotEmpty) {
+                        setState(() => _tasks.insert(0, Task(content: controller.text)));
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                      Navigator.pop(context);
+                    },
+                    child: const Text('추가'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Future<void> _search() async {
-    final c = TextEditingController();
+    final controller = TextEditingController();
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('카드 검색'),
-        content: TextField(controller: c, decoration: const InputDecoration(hintText: "검색어 입력")),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: '검색어 입력'),
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
           TextButton(
             onPressed: () {
-              final kw = c.text.trim();
+              final keyword = controller.text.trim();
               Navigator.pop(context);
-              if (kw.isEmpty) return;
-              final items = _tasks.where((t) => t.content?.contains(kw) ?? false).toList();
+              if (keyword.isEmpty) return;
+              final results = _tasks.where((t) => t.content?.contains(keyword) ?? false).toList();
               showDialog(
                 context: context,
                 builder: (_) => AlertDialog(
                   title: const Text('검색 결과'),
-                  content: items.isEmpty
+                  content: results.isEmpty
                       ? const Text('검색 결과가 없습니다.')
                       : SizedBox(
                     width: 80.w,
                     height: 40.h,
                     child: ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (_, i) => ListTile(title: Text(items[i].content ?? '')),
+                      itemCount: results.length,
+                      itemBuilder: (_, i) => ListTile(title: Text(results[i].content ?? '')),
                     ),
                   ),
                   actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('확인'))],
@@ -97,8 +150,16 @@ class _TaskPageState extends State<TaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        controller: _sc,
+      body: _tasks.isEmpty && !_loading
+          ? Center(
+        child: Text(
+          "할 일이 없습니다.\n오른쪽 아래 '+' 버튼을 눌러 추가해보세요!",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16.sp),
+        ),
+      )
+          : ListView.builder(
+        controller: _scrollController,
         itemCount: _tasks.length + 1,
         itemBuilder: (_, i) {
           if (i == _tasks.length) {
@@ -109,22 +170,29 @@ class _TaskPageState extends State<TaskPage> {
             )
                 : const SizedBox();
           }
-          final t = _tasks[i];
-          return Card(
-            margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-            child: Padding(
-              padding: EdgeInsets.all(2.h),
-              child: Text(t.content ?? '', style: TextStyle(fontSize: 16.sp)),
-            ),
+          return TaskCard(
+            task: _tasks[i],
+            isExpanded: _expanded[i] ?? false,
+            onTap: () => setState(() => _expanded[i] = !(_expanded[i] ?? false)),
           );
         },
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton(heroTag: 'add', onPressed: _addTask, child: const Icon(Icons.add)),
+          FloatingActionButton(
+            heroTag: 'add',
+            onPressed: _addTask,
+            tooltip: '할 일 추가',
+            child: const Icon(Icons.add),
+          ),
           SizedBox(height: 2.h),
-          FloatingActionButton(heroTag: 'search', onPressed: _search, child: const Icon(Icons.search)),
+          FloatingActionButton(
+            heroTag: 'search',
+            onPressed: _search,
+            tooltip: '검색',
+            child: const Icon(Icons.search),
+          ),
         ],
       ),
     );
