@@ -36,31 +36,34 @@ class _SocialPageState extends State<SocialPage>
           ),
         ],
       ),
-      body: TabBarView(controller: tabController, children: [
-        ListView.builder(
-          itemCount: 50,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: 1.h,
-              ),
-              child: Center(
-                child: Container(
-                  height: 10.h,
-                  width: 90.w,
-                  child: ColoredBox(
-                    color: Colors.red,
-                    child: Text("index: $index"),
+      body: TabBarView(
+        controller: tabController,
+        children: [
+          ListView.builder(
+            itemCount: 50,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 1.h,
+                ),
+                child: Center(
+                  child: Container(
+                    height: 10.h,
+                    width: 90.w,
+                    child: ColoredBox(
+                      color: Colors.red,
+                      child: Text("index: $index"),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-        Center(
-          child: Text("Hello World This is Rival"),
-        ),
-      ]),
+              );
+            },
+          ),
+          Center(
+            child: Text("Hello World This is Rival Page"),
+          ),
+        ],
+      ),
     );
   }
 }
