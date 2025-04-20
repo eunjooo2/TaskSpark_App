@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/ui/pages/shop.dart';
-import 'package:task_spark/ui/pages/social.dart';
+import 'package:task_spark/ui/pages/social_page.dart';
+import 'package:task_spark/ui/pages/store_page.dart';
+import 'package:task_spark/ui/pages/task_page.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
-import 'package:task_spark/ui/pages/splash.dart';
+import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 
@@ -116,35 +117,7 @@ class _MainPageState extends State<MainPage> {
         controller: _pageController,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    child: const Text("로그 아웃"),
-                    onPressed: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SplashPage(),
-                        ),
-                      );
-                      PocketB().pocketBase.authStore.clear();
-                    },
-                  ),
-                  SizedBox(height: 5.h),
-                  TextButton(
-                    child: const Text("유저 아이디 확인 (콘솔)"),
-                    onPressed: () async {
-                      String userID =
-                          await SecureStorage().storage.read(key: "userID") ??
-                              "";
-                      print(userID);
-                    },
-                  ),
-                ],
-              ),
-            );
+            return TaskPage();
           } else if (index == 1) {
             return SocialPage(); // 소셜 페이지
           } else if (index == 2) {

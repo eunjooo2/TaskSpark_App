@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_spark/ui/pages/splash.dart';
+import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 void main() {
