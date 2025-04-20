@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/ui/pages/achieve.dart';
 import 'package:task_spark/utils/models/user.dart';
 import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
@@ -162,7 +163,16 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       _getDrawerIconRow(
                         FontAwesomeIcons.medal,
                         "업적",
-                        () {},
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const ArchievePage();
+                              },
+                            ),
+                          );
+                        },
                       ),
                       _getDrawerIconRow(
                         FontAwesomeIcons.rightFromBracket,
