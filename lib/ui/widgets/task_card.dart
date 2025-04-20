@@ -1,69 +1,79 @@
 import 'package:flutter/material.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/utils/models/task.dart';
+import 'package:intl/intl.dart';
+import '../../utils/models/task_model.dart';
 
 class TaskCard extends StatelessWidget {
-  final Task task;
-  final bool isExpanded;
-  final VoidCallback onTap;
+  final TaskModel task;
+  final VoidCallback onDelete;
+  final VoidCallback onToggleExpand;
 
   const TaskCard({
     super.key,
     required this.task,
-    required this.isExpanded,
-    required this.onTap,
+    required this.onDelete,
+    required this.onToggleExpand,
   });
 
   @override
   Widget build(BuildContext context) {
-    const double collapsedHeight = 60;
-    const double expandedHeight = 160;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        height: isExpanded ? expandedHeight : collapsedHeight,
-        margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-        padding: EdgeInsets.all(2.h),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
-          borderRadius: BorderRadius.circular(2.h),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-            width: 1.2,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onToggleExpand,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(12),
+          constraints: const BoxConstraints(minHeight: 60),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(task.title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis),
+              if (task.isExpanded)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(task.description, maxLines: 3, overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 4),
+                      Text(
+                        "기간: ${DateFormat.yMd().format(task.startDate)} ~ ${DateFormat.yMd().format(task.endDate)}",
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Wrap(
+                        spacing: 6,
+                        children: task.tags.map((tag) => Chip(label: Text(tag))).toList(),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('삭제 확인'),
+                                  content: const Text('정말 삭제하시겠습니까?'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+                                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('삭제')),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) onDelete();
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                )
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Text(
-                task.content ?? '',
-                style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w500),
-              ),
-            ),
-            Positioned(
-              top: 40,
-              left: 0,
-              right: 0,
-              child: Text(
-                "자세한 설명 영역입니다.\n(예: 날짜, 태그, 상태 등)",
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-              ),
-            ),
-          ],
         ),
       ),
     );
