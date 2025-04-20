@@ -10,7 +10,7 @@ import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 
 class MainPage extends StatefulWidget {
-  MainPage({super.key});
+  const MainPage({super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -62,7 +62,7 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
       ), // settings, achiev와 프로필 및 각종 설정이 Drawer 형태로 들어갈 것
-      drawer: TaskSparkDrawer(),
+      drawer: const TaskSparkDrawer(),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashFactory: NoSplash.splashFactory,
@@ -121,7 +121,7 @@ class _MainPageState extends State<MainPage> {
           } else if (index == 1) {
             return SocialPage(); // 소셜 페이지
           } else if (index == 2) {
-            return StorePage();
+            return ShopPage();
           }
           return null;
         },

@@ -109,15 +109,15 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => MainPage(),
+                                        builder: (context) => const MainPage(),
                                       ),
                                     );
-                                    SecureStorage().storage.write(
+                                    await SecureStorage().storage.write(
                                           key: "userID",
                                           value: authData.record.id,
                                         );
                                   } else {
-                                    // 로그인 실패 다이얼로그 처리
+                                    print(authData);
                                   }
                                    */
                                 },
@@ -133,7 +133,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => MainPage(),
+                                        builder: (context) => const MainPage(),
                                       ),
                                     );
                                     SecureStorage().storage.write(
@@ -151,7 +151,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       ),
                     ),
                   )
-                : SizedBox(height: 20.h),
+                : SizedBox(
+                    height: 20.h,
+                  ),
           ],
         ),
       ),
