@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,10 @@ class TaskSparkApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
+          navigatorObservers: [
+            FlutterSmartDialog.observer,
+          ],
+          builder: FlutterSmartDialog.init(),
           debugShowCheckedModeBanner: false,
           home: const TaskSparkMainPage(title: 'TaskSpark'),
         );

@@ -8,6 +8,8 @@ import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
 import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:task_spark/utils/validator.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -21,6 +23,9 @@ class _MainPageState extends State<MainPage> {
   final PageController _pageController = PageController(initialPage: 0);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<String> navigationList = ["Tasks", "Social", "Shop"];
+  late TextEditingController _nicknameController = TextEditingController();
+  late TextEditingController _tagController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   String appBarTitle = "";
 
   @override
@@ -61,16 +66,158 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
         ),
-      ), // settings, achiev와 프로필 및 각종 설정이 Drawer 형태로 들어갈 것
-      drawer: const TaskSparkDrawer(),
+        actions: [
+          _selectedIndex == 1
+              ? Padding(
+                  padding: EdgeInsets.only(right: 5.w),
+                  child: IconButton(
+                    icon: FaIcon(
+                      FontAwesomeIcons.plus,
+                      color: Color.fromARGB(255, 59, 59, 59),
+                    ),
+                    onPressed: () {
+                      SmartDialog.show(builder: (context) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondary,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          width: 70.w,
+                          height: 30.h,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 2.h),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 5.w,
+                                      ),
+                                      Text(
+                                        "친구 추가하기",
+                                        style: TextStyle(
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 5.w),
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        // Nickname TextField는 2의 비율
+                                        Flexible(
+                                          flex: 2, // 2의 비율
+                                          child: TextFormField(
+                                              controller: _nicknameController,
+                                              decoration: InputDecoration(
+                                                labelText: "닉네임 입력",
+                                              ),
+                                              onChanged: (value) {
+                                                String? result =
+                                                    validateNickname(value);
+                                                if (result != "") {
+                                                  SmartDialog.showNotify(
+                                                    msg: result ?? "",
+                                                    notifyType:
+                                                        NotifyType.warning,
+                                                    alignment:
+                                                        Alignment.topCenter,
+                                                  );
+                                                }
+                                              }),
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Flexible(
+                                          flex: 1,
+                                          child: TextFormField(
+                                              controller: _tagController,
+                                              decoration: InputDecoration(
+                                                labelText: "태그 입력",
+                                              ),
+                                              onChanged: (value) {
+                                                String? result =
+                                                    validateTag(value);
+                                                if (result != "") {
+                                                  SmartDialog.showNotify(
+                                                    msg: result ?? "",
+                                                    notifyType:
+                                                        NotifyType.warning,
+                                                    alignment:
+                                                        Alignment.topCenter,
+                                                  );
+                                                }
+                                              }),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 1.h),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        child: Text(
+                                          "닫기",
+                                          style: TextStyle(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.5),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          SmartDialog.dismiss();
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: Text("친구 요청"),
+                                        onPressed: () {},
+                                      ),
+                                      Container(
+                                        width: 5.w,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+                    },
+                  ),
+                )
+              : Padding(
+                  padding: EdgeInsets.zero,
+                  child: Container(),
+                ),
+        ],
+      ),
+      drawer: TaskSparkDrawer(),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashFactory: NoSplash.splashFactory,
         ),
         child: Container(
-          padding: const EdgeInsets.only(
-            top: 5,
-          ),
+          padding: const EdgeInsets.only(top: 5),
           decoration: const BoxDecoration(
             border: Border(
               top: BorderSide(
