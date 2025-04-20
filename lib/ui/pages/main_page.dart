@@ -9,7 +9,7 @@ import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 
 class MainPage extends StatefulWidget {
-  MainPage({super.key});
+  const MainPage({super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -61,7 +61,7 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
       ), // settings, achiev와 프로필 및 각종 설정이 Drawer 형태로 들어갈 것
-      drawer: TaskSparkDrawer(),
+      drawer: const TaskSparkDrawer(),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashFactory: NoSplash.splashFactory,
@@ -121,12 +121,12 @@ class _MainPageState extends State<MainPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    child: Text("로그 아웃"),
+                    child: const Text("로그 아웃"),
                     onPressed: () async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SplashPage(),
+                          builder: (context) => const SplashPage(),
                         ),
                       );
                       PocketB().pocketBase.authStore.clear();
@@ -134,7 +134,7 @@ class _MainPageState extends State<MainPage> {
                   ),
                   SizedBox(height: 5.h),
                   TextButton(
-                    child: Text("유저 아이디 확인 (콘솔)"),
+                    child: const Text("유저 아이디 확인 (콘솔)"),
                     onPressed: () async {
                       String userID =
                           await SecureStorage().storage.read(key: "userID") ??

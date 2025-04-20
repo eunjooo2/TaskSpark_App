@@ -16,7 +16,7 @@ dependencies:
   pocketbase: ^0.22.0
   icons_plus: ^5.0.0
   url_launcher: ^6.3.1
-  lottie: ^3.3.1  # lottie 패키지 추가
+  lottie: ^3.3.1 # lottie 패키지 추가
   flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
@@ -29,5 +29,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/a.png   # a.png 추가
-    - assets/images/default_profile.png  # 기본 프로필 이미지 추가
+    - assets/icons/icon.png
+    - assets/images/
