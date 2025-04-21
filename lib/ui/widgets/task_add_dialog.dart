@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../utils/models/task_model.dart';
+import 'package:task_spark/utils/models/task_model.dart';
 
-Future<TaskModel?> showAddTaskDialog(BuildContext context, List<String> categories) async {
+Future<TaskModel?> showAddTaskDialog(
+    BuildContext context, List<String> categories) async {
   final titleController = TextEditingController();
   final descController = TextEditingController();
 
@@ -26,12 +27,14 @@ Future<TaskModel?> showAddTaskDialog(BuildContext context, List<String> categori
           const SizedBox(height: 10),
           DropdownButton<String>(
             isExpanded: true,
-            value: categorySet.contains(selectedCategory) ? selectedCategory : categorySet.first,
+            value: categorySet.contains(selectedCategory)
+                ? selectedCategory
+                : categorySet.first,
             items: categorySet
                 .map((c) => DropdownMenuItem(
-              value: c,
-              child: Text(c),
-            ))
+                      value: c,
+                      child: Text(c),
+                    ))
                 .toList(),
             onChanged: (val) {
               if (val != null) {

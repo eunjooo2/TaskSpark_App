@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/social_page.dart';
-import 'package:task_spark/ui/pages/store_page.dart';
 import 'package:task_spark/ui/pages/task_page.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
-import 'package:task_spark/ui/pages/splash_page.dart';
-import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:task_spark/utils/validator.dart';
+import 'package:task_spark/ui/pages/shop_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

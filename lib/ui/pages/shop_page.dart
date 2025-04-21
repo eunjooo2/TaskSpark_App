@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_spark/data/shop_item_data.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({super.key});
@@ -8,42 +9,6 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  // 아이템 리스트 정의
-  final List<Map<String, dynamic>> items = [
-    {
-      "image": "assets/icons/a.png",
-      "title": "방어권",
-      "description": "천연 재료로 만든 유니비누, 향이 좋아요!",
-      "price": 5000,
-    },
-    {
-      "image": "assets/icons/a.png",
-      "title": "보상 부스트",
-      "description": "친환경 소재로 제작된 텀블러입니다.",
-    },
-    {
-      "image": "assets/icons/a.png",
-      "title": "라이벌 신청권",
-      "description": "깔끔한 디자인의 노트로 공부에 딱!",
-    },
-    {
-      "image": "assets/icons/a.png",
-      "title": "닉네임 변경",
-      "description": "깔끔한 디자인의 노트로 공부에 딱!",
-    },
-    {
-      "image": "assets/icons/a.png",
-      "title": "태그 변경",
-      "description": "깔끔한 디자인의 노트로 공부에 딱!",
-    },
-    {
-      "image": "assets/icons/a.png",
-      "title": "포인트 칭호",
-      "description": "깔끔한 디자인의 노트로 공부에 딱!",
-    },
-    // 필요한 만큼 추가 가능
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +24,7 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
+  /*
   Widget _buildProfileSection() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -67,7 +33,7 @@ class _ShopPageState extends State<ShopPage> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundImage: const AssetImage("assets/icons/a.png"),
+            backgroundImage: const AssetImage("assets/images/a.png"),
             backgroundColor: Colors.white,
           ),
           const SizedBox(width: 10),
@@ -119,6 +85,7 @@ class _ShopPageState extends State<ShopPage> {
       ),
     );
   }
+  */
 
   Widget _buildItemGrid() {
     return GridView.builder(
