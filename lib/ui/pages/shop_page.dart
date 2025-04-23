@@ -16,7 +16,7 @@ class _ShopPageState extends State<ShopPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            //_buildProfileSection(),
+            _buildProfileSection(),
             _buildItemGrid(),
           ],
         ),
@@ -24,7 +24,6 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
-  /*
   Widget _buildProfileSection() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -33,7 +32,9 @@ class _ShopPageState extends State<ShopPage> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundImage: const AssetImage("assets/images/a.png"),
+            backgroundImage: const AssetImage(
+              "assets/images/default_profile.png",
+            ),
             backgroundColor: Colors.white,
           ),
           const SizedBox(width: 10),
@@ -85,7 +86,6 @@ class _ShopPageState extends State<ShopPage> {
       ),
     );
   }
-  */
 
   Widget _buildItemGrid() {
     return GridView.builder(
