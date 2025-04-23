@@ -15,8 +15,9 @@ class PocketB {
   }
 
   Future<RecordAuth> sendLoginRequest(String provider) async {
-    return await pocketBase.collection("users").authWithOAuth2(provider,
-        (url) async {
+    return await pocketBase.collection("users").authWithOAuth2(provider, (
+      url,
+    ) async {
       await launchUrl(url);
     });
   }
@@ -30,7 +31,9 @@ class PocketB {
   }
 
   Future<RecordModel> _updateRecordByID(
-      String userID, Map<String, dynamic> body) async {
+    String userID,
+    Map<String, dynamic> body,
+  ) async {
     return await pocketBase.collection("users").update(userID, body: body);
   }
 

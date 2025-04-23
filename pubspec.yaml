@@ -29,5 +29,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/a.png   # a.png 추가
     - assets/images/default_profile.png  # 기본 프로필 이미지 추가
+    - assets/images/
