@@ -135,9 +135,14 @@ class _ShopPageState extends State<ShopPage> {
                   backgroundImage: AssetImage(item["image"]!),
                 ),
                 const SizedBox(height: 8),
-                Text(item["name"] ?? "",
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(
+                  item["name"] ?? "",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(221, 15, 15, 15),
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
