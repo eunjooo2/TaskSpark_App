@@ -96,22 +96,30 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "google",
                                 title: "Google 로그인",
                                 onPressed: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MainPage(),
+                                    ),
+                                  );
+                                  /* INFO: 인증 실패 이슈로 주석처리됨
                                   final authData = await PocketB()
                                       .sendLoginRequest("google");
                                   if (authData.token != "") {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => MainPage(),
+                                        builder: (context) => const MainPage(),
                                       ),
                                     );
-                                    SecureStorage().storage.write(
+                                    await SecureStorage().storage.write(
                                           key: "userID",
                                           value: authData.record.id,
                                         );
                                   } else {
-                                    // 로그인 실패 다이얼로그 처리
+                                    print(authData);
                                   }
+                                   */
                                 },
                               ),
                               LoginButton(
@@ -125,7 +133,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => MainPage(),
+                                        builder: (context) => const MainPage(),
                                       ),
                                     );
                                     SecureStorage().storage.write(
@@ -143,7 +151,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       ),
                     ),
                   )
-                : SizedBox(height: 20.h),
+                : SizedBox(
+                    height: 20.h,
+                  ),
           ],
         ),
       ),
