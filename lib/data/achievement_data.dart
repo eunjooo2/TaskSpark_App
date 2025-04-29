@@ -1,4 +1,4 @@
-import '../ui/pages/achievement.dart';
+import 'package:task_spark/utils/models/achievement.dart';
 
 // [ 업적 리스트 페이지 ]
 // 브 5 실 15 골 30 플 50 다 80
