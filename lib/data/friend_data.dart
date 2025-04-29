@@ -1,5 +1,3 @@
-import 'package:task_spark/utils/models/friend.dart';
-
 final List<Map<String, dynamic>> friendDummyData = [
   {
     "collectionId": "friend_requests",
