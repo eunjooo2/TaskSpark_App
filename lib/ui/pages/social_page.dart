@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/data/friend_data.dart';
+import 'package:task_spark/ui/widgets/friend_expanision.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -15,11 +16,16 @@ class _SocialPageState extends State<SocialPage>
 
   List<Map<String, dynamic>> receivedFriendRequest =
       friendDummyData.where((friend) {
-    return friend["isReceived"] == false && friend["status"] == "pending";
+    return friend["isReceived"] == true && friend["status"] == "pending";
   }).toList();
 
   List<Map<String, dynamic>> friendList = friendDummyData.where((friend) {
     return friend["status"] == "accepted";
+  }).toList();
+
+  List<Map<String, dynamic>> transmitedFriendRequest =
+      friendDummyData.where((friend) {
+    return friend["isReceived"] == false && friend["status"] == "pending";
   }).toList();
 
   @override
@@ -53,123 +59,20 @@ class _SocialPageState extends State<SocialPage>
             child: Column(
               children: [
                 SizedBox(height: 2.h),
-                ExpansionTile(
-                  shape: const Border(),
-                  showTrailingIcon: false,
-                  initiallyExpanded: true,
-                  title: Row(
-                    children: [
-                      const Expanded(
-                        child: Divider(
-                          color: Colors.amber,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 1.w),
-                        child: Text(
-                          "요청 받은 친구 목록",
-                          style: TextStyle(
-                            color: Colors.amber,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14.5.sp,
-                          ),
-                        ),
-                      ),
-                      const Expanded(
-                        child: Divider(
-                          color: Colors.amber,
-                        ),
-                      ),
-                    ],
-                  ),
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: receivedFriendRequest.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 3.w, vertical: 1.h),
-                          child: GestureDetector(
-                            onTap: () {},
-                            child: Card(
-                              child: SizedBox(
-                                width: 80.w,
-                                height: 8.h,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(receivedFriendRequest[index]
-                                        ["friendId"]),
-                                    SizedBox(width: 10),
-                                    Text("상태: 온라인"),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                FriendExpanision(
+                  title: "요청 받은 친구 목록",
+                  expanisionType: "received",
+                  data: receivedFriendRequest,
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: Colors.amber,
-                        indent: 0.5.cm,
-                        endIndent: 0.25.cm,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 1.w),
-                      child: Text(
-                        "친구 목록",
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.5.sp,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: Colors.amber,
-                        indent: 0.25.cm,
-                        endIndent: 0.5.cm,
-                      ),
-                    ),
-                  ],
+                FriendExpanision(
+                  title: "전송한 친구 요청 목록",
+                  expanisionType: "transmited",
+                  data: transmitedFriendRequest,
                 ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: friendList.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Card(
-                          child: SizedBox(
-                            width: 80.w,
-                            height: 8.h,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(friendList[index]["friendId"]),
-                                SizedBox(width: 10),
-                                Text("상태: 온라인"),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                FriendExpanision(
+                  title: "친구 목록",
+                  expanisionType: "normal",
+                  data: friendList,
                 ),
               ],
             ),
