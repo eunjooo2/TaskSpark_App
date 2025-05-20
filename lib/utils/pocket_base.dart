@@ -1,4 +1,5 @@
 import 'package:pocketbase/pocketbase.dart';
+import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,5 +44,11 @@ class PocketB {
 
   Future<void> deleteUserByID(String userID) async {
     return await pocketBase.collection("users").delete(userID);
+  }
+
+  Future<RecordModel> getFriendList() async {
+    return await pocketBase.collection("friends").getFullList(
+      filter: 
+    )
   }
 }

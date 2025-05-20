@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-enum FriendRequestStatus { pending, accepted, rejected, blocked }
+enum FriendRequestStatus { pending, accepted, blocked }
 
 extension FriendRequestStatusExtension on FriendRequestStatus {
   String get name => toString().split('.').last;
@@ -41,7 +41,17 @@ class FriendRequest {
       collectionId: json['id'],
       senderId: json['sender'],
       receiverId: json['receiver'],
-      status: FriendRequestStatusExtension.fromString(json['status']),
+      status: _convertStatus(json['isAccepted'], json['isBlocked']),
     );
+  }
+}
+
+FriendRequestStatus _convertStatus(bool isAccepted, bool isBlocked) {
+  if (isBlocked == true) {
+    return FriendRequestStatus.blocked;
+  } else if (isAccepted == true) {
+    return FriendRequestStatus.accepted;
+  } else {
+    return FriendRequestStatus.pending;
   }
 }
