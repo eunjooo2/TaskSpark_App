@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/data/friend_data.dart';
+import 'package:task_spark/ui/widgets/friend_expanision.dart';
 
 class SocialPage extends StatefulWidget {
-  SocialPage({super.key});
+  const SocialPage({super.key});
 
   @override
   State<SocialPage> createState() => _SocialPageState();
@@ -10,57 +12,73 @@ class SocialPage extends StatefulWidget {
 
 class _SocialPageState extends State<SocialPage>
     with SingleTickerProviderStateMixin {
-  late TabController tabController = TabController(
-    length: 2,
-    vsync: this,
-    initialIndex: 0,
-    animationDuration: const Duration(milliseconds: 400),
-  );
+  late TabController tabController;
+
+  List<Map<String, dynamic>> receivedFriendRequest =
+      friendDummyData.where((friend) {
+    return friend["isReceived"] == true && friend["status"] == "pending";
+  }).toList();
+
+  List<Map<String, dynamic>> friendList = friendDummyData.where((friend) {
+    return friend["status"] == "accepted";
+  }).toList();
+
+  List<Map<String, dynamic>> transmitedFriendRequest =
+      friendDummyData.where((friend) {
+    return friend["isReceived"] == false && friend["status"] == "pending";
+  }).toList();
+
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: 0,
+      animationDuration: const Duration(milliseconds: 400),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TabBar(
-        labelColor: Colors.white,
-        labelStyle: TextStyle(fontWeight: FontWeight.bold),
-        unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
-        unselectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
         controller: tabController,
-        tabs: [
-          Tab(
-            child: Text("친구 목록"),
-          ),
-          Tab(
-            child: Text("라이벌 목록"),
-          ),
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white.withOpacity(0.4),
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        tabs: const [
+          Tab(text: "친구 목록"),
+          Tab(text: "라이벌 목록"),
         ],
       ),
       body: TabBarView(
         controller: tabController,
         children: [
-          ListView.builder(
-            itemCount: 50,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 1.h,
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: 2.h),
+                FriendExpanision(
+                  title: "요청 받은 친구 목록",
+                  expanisionType: "received",
+                  data: receivedFriendRequest,
                 ),
-                child: Center(
-                  child: Container(
-                    height: 10.h,
-                    width: 90.w,
-                    child: ColoredBox(
-                      color: Colors.red,
-                      child: Text("index: $index"),
-                    ),
-                  ),
+                FriendExpanision(
+                  title: "전송한 친구 요청 목록",
+                  expanisionType: "transmited",
+                  data: transmitedFriendRequest,
                 ),
-              );
-            },
+                FriendExpanision(
+                  title: "친구 목록",
+                  expanisionType: "normal",
+                  data: friendList,
+                ),
+              ],
+            ),
           ),
-          Center(
-            child: Text("Hello World This is Rival Page"),
+          const Center(
+            child: Text("라이벌 페이지입니다"),
           ),
         ],
       ),
