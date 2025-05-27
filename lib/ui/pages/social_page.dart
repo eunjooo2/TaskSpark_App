@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/data/friend_data.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
+import 'package:task_spark/utils/models/friend.dart';
+import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/utils/secure_storage.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -13,24 +16,36 @@ class SocialPage extends StatefulWidget {
 class _SocialPageState extends State<SocialPage>
     with SingleTickerProviderStateMixin {
   late TabController tabController;
+  late List<FriendRequest> receiveFriendRequest = [];
+  late List<FriendRequest> sentFriendRequest = [];
+  late List<FriendRequest> acceptedFriends = [];
 
-  List<Map<String, dynamic>> receivedFriendRequest =
-      friendDummyData.where((friend) {
-    return friend["isReceived"] == true && friend["status"] == "pending";
-  }).toList();
+  Future<void> getFriend() async {
+    final friendRequests = await PocketB().getFriendList();
 
-  List<Map<String, dynamic>> friendList = friendDummyData.where((friend) {
-    return friend["status"] == "accepted";
-  }).toList();
+    final user = await SecureStorage().storage.read(key: "userID");
 
-  List<Map<String, dynamic>> transmitedFriendRequest =
-      friendDummyData.where((friend) {
-    return friend["isReceived"] == false && friend["status"] == "pending";
-  }).toList();
+    setState(() {
+      receiveFriendRequest = friendRequests
+          .where((f) =>
+              f.status == FriendRequestStatus.pending && f.receiverId == user)
+          .toList();
+
+      sentFriendRequest = friendRequests
+          .where((f) =>
+              f.status == FriendRequestStatus.pending && f.senderId == user)
+          .toList();
+
+      acceptedFriends = friendRequests
+          .where((f) => f.status == FriendRequestStatus.accepted)
+          .toList();
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    getFriend();
     tabController = TabController(
       length: 2,
       vsync: this,
@@ -41,6 +56,10 @@ class _SocialPageState extends State<SocialPage>
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = receiveFriendRequest.isEmpty &&
+        sentFriendRequest.isEmpty &&
+        acceptedFriends.isEmpty;
+
     return Scaffold(
       appBar: TabBar(
         controller: tabController,
@@ -55,28 +74,27 @@ class _SocialPageState extends State<SocialPage>
       body: TabBarView(
         controller: tabController,
         children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(height: 2.h),
-                FriendExpanision(
-                  title: "요청 받은 친구 목록",
-                  expanisionType: "received",
-                  data: receivedFriendRequest,
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 2.h),
+                      FriendExpanision(
+                        title: "요청 받은 친구 목록",
+                        expanisionType: "received",
+                        data: receiveFriendRequest,
+                        isReceived: true,
+                      ),
+                      FriendExpanision(
+                        title: "전송한 친구 요청 목록",
+                        expanisionType: "transmited",
+                        data: sentFriendRequest,
+                        isReceived: false,
+                      ),
+                    ],
+                  ),
                 ),
-                FriendExpanision(
-                  title: "전송한 친구 요청 목록",
-                  expanisionType: "transmited",
-                  data: transmitedFriendRequest,
-                ),
-                FriendExpanision(
-                  title: "친구 목록",
-                  expanisionType: "normal",
-                  data: friendList,
-                ),
-              ],
-            ),
-          ),
           const Center(
             child: Text("라이벌 페이지입니다"),
           ),

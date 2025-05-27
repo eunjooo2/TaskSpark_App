@@ -1,6 +1,7 @@
 import 'package:pocketbase/pocketbase.dart';
 import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
+import 'package:task_spark/utils/secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PocketB {
@@ -28,6 +29,8 @@ class PocketB {
   }
 
   Future<User> getUserByID(String userID) async {
+    print("userID: $userID");
+    print("data: ${await _getRecordByID(userID)}");
     return User.fromRecord(await _getRecordByID(userID));
   }
 
@@ -46,9 +49,19 @@ class PocketB {
     return await pocketBase.collection("users").delete(userID);
   }
 
-  Future<RecordModel> getFriendList() async {
-    return await pocketBase.collection("friends").getFullList(
-      filter: 
-    )
+  Future<List<RecordModel>> _getFriendRecordList() async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    return await pocketBase
+        .collection("friends")
+        .getFullList(filter: "sender.id='$userID'||receiver.id='$userID'");
+  }
+
+  Future<List<FriendRequest>> getFriendList() async {
+    final friendRecordList = await _getFriendRecordList();
+    final friendRequests = friendRecordList
+        .map((json) => FriendRequest.fromRecordModel(json))
+        .toList();
+
+    return friendRequests;
   }
 }
