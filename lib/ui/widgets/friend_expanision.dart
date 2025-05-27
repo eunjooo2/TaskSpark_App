@@ -3,7 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/utils/services/friend_service.dart';
+import 'package:task_spark/utils/services/user_service.dart';
 
 class FriendExpanision extends StatefulWidget {
   FriendExpanision({
@@ -12,12 +14,14 @@ class FriendExpanision extends StatefulWidget {
     required this.expanisionType,
     required this.data,
     required this.isReceived,
+    this.onDataChanged,
   });
 
   final String title;
   final String expanisionType;
   final List<FriendRequest> data;
-  final bool isReceived;
+  final bool? isReceived;
+  final void Function()? onDataChanged;
 
   @override
   State<FriendExpanision> createState() => _FriendExpanisionState();
@@ -30,13 +34,18 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     "normal",
   ];
 
-  Widget? _buildActionButtons(String type) {
+  Widget? _buildActionButtons(String recordID, String type) {
     switch (type) {
       case "received":
         return Row(
           children: [
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                await FriendService().acceptFriendRequest(recordID);
+                if (widget.onDataChanged != null) {
+                  widget.onDataChanged!();
+                }
+              },
               icon: FaIcon(
                 FontAwesomeIcons.check,
                 color: Colors.green,
@@ -44,7 +53,12 @@ class _FriendExpanisionState extends State<FriendExpanision> {
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                await FriendService().rejectFriendRequest(recordID);
+                if (widget.onDataChanged != null) {
+                  widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
+                }
+              },
               icon: FaIcon(
                 FontAwesomeIcons.x,
                 color: Colors.red,
@@ -55,7 +69,12 @@ class _FriendExpanisionState extends State<FriendExpanision> {
         );
       case "transmited":
         return TextButton(
-          onPressed: () {},
+          onPressed: () async {
+            await FriendService().rejectFriendRequest(recordID);
+            if (widget.onDataChanged != null) {
+              widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
+            }
+          },
           child: Text(
             "요청 취소",
             style: TextStyle(
@@ -78,13 +97,23 @@ class _FriendExpanisionState extends State<FriendExpanision> {
 
   List<User?> users = [];
 
-  void _fetchUser(int index) async {
-    final data = widget.isReceived
-        ? await PocketB().getUserByID(widget.data[index].senderId)
-        : await PocketB().getUserByID(widget.data[index].receiverId);
-    setState(() {
-      users[index] = data;
-    });
+  Future<String> getOtherUserID(FriendRequest request) async {
+    String? myUserID = await SecureStorage().storage.read(key: "userID");
+    if (request.senderId == myUserID) {
+      return request.receiverId;
+    } else {
+      return request.senderId;
+    }
+  }
+
+  Future<User> _fetchUser(int index) async {
+    final data = widget.isReceived != null
+        ? (widget.isReceived == true
+            ? await UserService().getUserByID(widget.data[index].senderId)
+            : await UserService().getUserByID(widget.data[index].receiverId))
+        : await UserService()
+            .getUserByID(await getOtherUserID(widget.data[index]));
+    return data;
   }
 
   @override
@@ -92,10 +121,25 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     super.initState();
     if (widget.data.isNotEmpty) {
       users = List<User?>.filled(widget.data.length, null);
+      loadUsers(); // 비동기 로드 함수 분리
+    }
+  }
 
-      for (int i = 0; i < widget.data.length; i++) {
-        _fetchUser(i);
-      }
+  Future<void> loadUsers() async {
+    for (int i = 0; i < widget.data.length; i++) {
+      User user = await _fetchUser(i);
+      setState(() {
+        users[i] = user;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FriendExpanision oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.data.length != users.length) {
+      users = List<User?>.filled(widget.data.length, null);
+      loadUsers();
     }
   }
 
@@ -148,26 +192,49 @@ class _FriendExpanisionState extends State<FriendExpanision> {
               );
             } else {
               final user = users[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Card(
-                    child: SizedBox(
-                      width: 80.w,
-                      height: 8.h,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(user?.id ?? ""),
-                          _buildActionButtons(widget.expanisionType) ??
-                              SizedBox(),
-                        ],
+              if (user == null) {
+                return Padding(
+                  padding: EdgeInsets.all(2.h),
+                  child: Row(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 2.w),
+                      Text("유저 정보 로딩 중..."),
+                    ],
+                  ),
+                );
+              } else {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Card(
+                      child: SizedBox(
+                        width: 80.w,
+                        height: 8.h,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Colors.white,
+                              backgroundImage:
+                                  user.avatar != null && user.avatar!.isNotEmpty
+                                      ? NetworkImage(
+                                          "https://pb.aroxu.me/${user.avatar}")
+                                      : const AssetImage(
+                                          "assets/images/default_profile.png"),
+                            ),
+                            Text("${user.nickname}#${user.tag}"),
+                            _buildActionButtons(widget.data[index].id,
+                                    widget.expanisionType) ??
+                                SizedBox(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
+                );
+              }
             }
           },
         ),

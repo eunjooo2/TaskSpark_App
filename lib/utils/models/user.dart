@@ -10,10 +10,13 @@ class User {
   bool? verified;
   String? name;
   String? avatar;
-  int? exp;
+  num? exp;
   Map<String, dynamic>? inventory;
   DateTime? created;
   DateTime? updated;
+  String? accessToken;
+  String? nickname;
+  int? tag;
 
   User({
     this.collectionId,
@@ -23,11 +26,14 @@ class User {
     this.emailVisibility,
     this.verified,
     this.name,
+    this.nickname,
+    this.tag,
     this.avatar,
     this.exp,
     this.inventory,
     this.created,
     this.updated,
+    this.accessToken,
   });
 
   @override
@@ -36,6 +42,7 @@ class User {
       "collectionId": collectionId,
       "collectionName": collectionName,
       "id": id,
+      "accessToken": accessToken,
       "email": email,
       "emailVisibility": emailVisibility,
       "verified": verified,
@@ -58,10 +65,28 @@ class User {
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
       avatar: record.data["avatar"] as String?,
-      exp: record.data["exp"] as int?,
+      exp: record.data["exp"] as num?,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
+    );
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    final user = json["data"];
+    return User(
+      accessToken: json["token"],
+      id: user["id"],
+      email: user["email"] as String?,
+      verified: user["verified"] as bool?,
+      name: user["name"] as String?,
+      avatar: user["avatar"] as String?,
+      nickname: user["nickname"] as String?,
+      tag: user["tag"] as int?,
+      exp: user["exp"] as num?,
+      inventory: user["inventory"] as Map<String, dynamic>?,
+      created: DateTime.tryParse(user["created"]),
+      updated: DateTime.tryParse(user["updated"]),
     );
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/data/friend_data.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
 import 'package:task_spark/utils/models/friend.dart';
-import 'package:task_spark/utils/pocket_base.dart';
 import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/utils/services/friend_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -21,7 +20,7 @@ class _SocialPageState extends State<SocialPage>
   late List<FriendRequest> acceptedFriends = [];
 
   Future<void> getFriend() async {
-    final friendRequests = await PocketB().getFriendList();
+    final friendRequests = await FriendService().getFriendList();
 
     final user = await SecureStorage().storage.read(key: "userID");
 
@@ -85,12 +84,20 @@ class _SocialPageState extends State<SocialPage>
                         expanisionType: "received",
                         data: receiveFriendRequest,
                         isReceived: true,
+                        onDataChanged: getFriend,
                       ),
                       FriendExpanision(
-                        title: "전송한 친구 요청 목록",
-                        expanisionType: "transmited",
-                        data: sentFriendRequest,
-                        isReceived: false,
+                          title: "전송한 친구 요청 목록",
+                          expanisionType: "transmited",
+                          data: sentFriendRequest,
+                          isReceived: false,
+                          onDataChanged: getFriend),
+                      FriendExpanision(
+                        title: "친구 목록",
+                        expanisionType: "accepted",
+                        data: acceptedFriends,
+                        isReceived: null,
+                        onDataChanged: getFriend,
                       ),
                     ],
                   ),
