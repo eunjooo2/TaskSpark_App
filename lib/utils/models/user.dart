@@ -90,3 +90,50 @@ class User {
     );
   }
 }
+
+class SearchData {
+  int? count;
+  List<SearchUser>? data;
+  bool? success;
+
+  SearchData({required this.count, required this.data, required this.success});
+
+  factory SearchData.fromJson(Map<String, dynamic> json) {
+    return SearchData(
+      count: json["count"] as int,
+      data: (json["data"] as List<dynamic>)
+          .map((e) => SearchUser.fromJson(e))
+          .toList(),
+      success: json["success"] as bool,
+    );
+  }
+}
+
+class SearchUser {
+  String? avatar;
+  String? created;
+  num? exp;
+  String? id;
+  String? nickname;
+  int? tag;
+
+  SearchUser({
+    required this.avatar,
+    required this.created,
+    required this.exp,
+    required this.id,
+    required this.nickname,
+    required this.tag,
+  });
+
+  factory SearchUser.fromJson(Map<String, dynamic> json) {
+    return SearchUser(
+      avatar: json["avatar"] != null ? json["avatar"] as String : null,
+      created: json["created"] as String,
+      exp: json["exp"],
+      id: json["id"] as String,
+      nickname: json["nickname"] as String,
+      tag: json["tag"],
+    );
+  }
+}

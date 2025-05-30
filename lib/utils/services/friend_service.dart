@@ -26,16 +26,16 @@ class FriendService {
         await PocketB().pocketBase.collection('friends').getOne(recordID));
   }
 
-  Future<bool> sendFriendRequest(String nickname, num tag) async {
+  Future<void> sendFriendRequest(String targetUserId) async {
     final userID = await SecureStorage().storage.read(key: "userID");
     final body = <String, dynamic>{
       "sender": userID,
-      "receiver": "test",
+      "receiver": targetUserId,
       "isAccepted": false,
       "isBlocked": false,
     };
-    print(body);
-    return true;
+
+    await PocketB().pocketBase.collection('friends').create(body: body);
   }
 
   Future<void> rejectFriendRequest(String recordID) async {
@@ -51,5 +51,42 @@ class FriendService {
       "receiver": originFriendRequest.receiverId,
       "isAccepted": true,
     });
+  }
+
+  Future<bool> checkIsFriend(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||(sender.id='$targetUserId'&&receiver.id='$userID'))&&isAccepted=true");
+
+    return friends.length == 1;
+  }
+
+  Future<bool> alreadyRequestFriend(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "sender.id='$userID'&&receiver.id='$targetUserId'&&isAccepted=false");
+
+    return friends.length == 1;
+  }
+
+  Future<bool> isRequestFromTargetToMe(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection("friends").getFullList(
+        filter:
+            "sender.id='$targetUserId'&&receiver.id='$userID'&&isAccepted=false");
+
+    return friends.length == 1;
+  }
+
+  Future<String> getRequestIDByTargetID(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||sender.id='$targetUserId'&&receiver.id='$userID')&&isAccepted=false");
+
+    return friends[0].id;
   }
 }

@@ -25,6 +25,21 @@ class UserService {
     return User.fromJson(response);
   }
 
+  Future<SearchData> getUserByNickanemAndTag(String nickname, int? tag) async {
+    final accessToken = await SecureStorage().storage.read(key: "accessToken");
+    Map<String, dynamic> query = {"nickname": nickname};
+    if (tag != null) {
+      query["tag"] = tag;
+    }
+
+    final response = await PocketB().pocketBase.send("/user/search",
+        method: "GET",
+        query: query,
+        headers: {"Authorization": "Bearer $accessToken"});
+
+    return SearchData.fromJson(response);
+  }
+
   Future<RecordModel> _updateRecordByID(
     String userID,
     Map<String, dynamic> body,

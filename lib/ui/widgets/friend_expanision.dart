@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:task_spark/ui/widgets/friend.dart';
 import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
 import 'package:task_spark/utils/secure_storage.dart';
@@ -82,13 +83,23 @@ class _FriendExpanisionState extends State<FriendExpanision> {
             ),
           ),
         );
-      case "normal":
-        return IconButton(
-          onPressed: () {},
-          icon: FaIcon(
-            FontAwesomeIcons.info,
-            color: Colors.grey,
-            size: 18.sp,
+      case "accepted":
+        return TextButton(
+          onPressed: () async {
+            await FriendService().rejectFriendRequest(recordID);
+            if (widget.onDataChanged != null) {
+              widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
+            }
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("친구를 삭제하였습니다!"),
+                backgroundColor: Theme.of(context).colorScheme.primary));
+          },
+          child: Text(
+            "친구 삭제",
+            style: TextStyle(
+              color: Color(0xFFFF8888),
+              fontSize: 14.sp,
+            ),
           ),
         );
     }
@@ -204,35 +215,10 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                   ),
                 );
               } else {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Card(
-                      child: SizedBox(
-                        width: 80.w,
-                        height: 8.h,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.white,
-                              backgroundImage:
-                                  user.avatar != null && user.avatar!.isNotEmpty
-                                      ? NetworkImage(
-                                          "https://pb.aroxu.me/${user.avatar}")
-                                      : const AssetImage(
-                                          "assets/images/default_profile.png"),
-                            ),
-                            Text("${user.nickname}#${user.tag}"),
-                            _buildActionButtons(widget.data[index].id,
-                                    widget.expanisionType) ??
-                                SizedBox(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                return FriendCard(
+                  generalUser: user,
+                  actionButtons: _buildActionButtons(
+                      widget.data[index].id, widget.expanisionType),
                 );
               }
             }

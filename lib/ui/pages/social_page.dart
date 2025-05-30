@@ -4,6 +4,7 @@ import 'package:task_spark/ui/widgets/friend_expanision.dart';
 import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
+import 'package:task_spark/main.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -13,11 +14,31 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   late TabController tabController;
   late List<FriendRequest> receiveFriendRequest = [];
   late List<FriendRequest> sentFriendRequest = [];
   late List<FriendRequest> acceptedFriends = [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute != null) {
+      routeObserver.subscribe(this, modalRoute);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    getFriend();
+  }
 
   Future<void> getFriend() async {
     final friendRequests = await FriendService().getFriendList();
