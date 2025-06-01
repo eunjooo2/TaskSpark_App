@@ -1,5 +1,7 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend.dart';
 import 'package:task_spark/utils/models/friend.dart';
@@ -16,6 +18,7 @@ class FriendExpanision extends StatefulWidget {
     required this.data,
     required this.isReceived,
     this.onDataChanged,
+    this.onTap,
   });
 
   final String title;
@@ -23,6 +26,7 @@ class FriendExpanision extends StatefulWidget {
   final List<FriendRequest> data;
   final bool? isReceived;
   final void Function()? onDataChanged;
+  final VoidCallback? onTap;
 
   @override
   State<FriendExpanision> createState() => _FriendExpanisionState();
@@ -79,25 +83,6 @@ class _FriendExpanisionState extends State<FriendExpanision> {
           child: Text(
             "요청 취소",
             style: TextStyle(
-              fontSize: 14.sp,
-            ),
-          ),
-        );
-      case "accepted":
-        return TextButton(
-          onPressed: () async {
-            await FriendService().rejectFriendRequest(recordID);
-            if (widget.onDataChanged != null) {
-              widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
-            }
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text("친구를 삭제하였습니다!"),
-                backgroundColor: Theme.of(context).colorScheme.primary));
-          },
-          child: Text(
-            "친구 삭제",
-            style: TextStyle(
-              color: Color(0xFFFF8888),
               fontSize: 14.sp,
             ),
           ),
@@ -216,10 +201,63 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                 );
               } else {
                 return FriendCard(
-                  generalUser: user,
-                  actionButtons: _buildActionButtons(
-                      widget.data[index].id, widget.expanisionType),
-                );
+                    generalUser: user,
+                    actionButtons: _buildActionButtons(
+                        widget.data[index].id, widget.expanisionType),
+                    onTap: () {
+                      final image = user.avatar != null &&
+                              user.avatar!.isNotEmpty
+                          ? NetworkImage("https://pb.aroxu.me/${user.avatar!}")
+                          : const AssetImage(
+                                  "assets/images/default_profile.png")
+                              as ImageProvider;
+                      if (widget.expanisionType == "normal") {
+                        AwesomeDialog(
+                          context: context,
+                          animType: AnimType.scale,
+                          dialogType: DialogType.noHeader,
+                          body: Column(children: [
+                            Text(
+                              "${user.nickname}#${user.tag}님의 정보",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5.w),
+                                  child: CircleAvatar(
+                                    radius: 25.sp,
+                                    backgroundImage: image,
+                                    backgroundColor: Colors.grey[200],
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("이름: ${user.name}"),
+                                    Text("닉네임: ${user.nickname}"),
+                                    Text("레벨: ${50}"),
+                                    Text(
+                                        "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 2.h),
+                          ]),
+                          btnOkText: "라이벌 신청",
+                          btnOkOnPress: () {},
+                          btnCancelText: "친구 삭제",
+                          btnCancelOnPress: () {},
+                        ).show();
+                      }
+                    });
               }
             }
           },

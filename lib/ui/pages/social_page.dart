@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
@@ -115,7 +116,7 @@ class _SocialPageState extends State<SocialPage>
                           onDataChanged: getFriend),
                       FriendExpanision(
                         title: "친구 목록",
-                        expanisionType: "accepted",
+                        expanisionType: "normal",
                         data: acceptedFriends,
                         isReceived: null,
                         onDataChanged: getFriend,

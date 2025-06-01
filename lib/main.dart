@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -63,10 +62,8 @@ class _TaskSparkAppState extends State<TaskSparkApp> with RouteAware {
             useMaterial3: true,
           ),
           navigatorObservers: [
-            FlutterSmartDialog.observer,
             routeObserver,
           ],
-          builder: FlutterSmartDialog.init(),
           debugShowCheckedModeBanner: false,
           home: const TaskSparkMainPage(title: 'TaskSpark'),
         );

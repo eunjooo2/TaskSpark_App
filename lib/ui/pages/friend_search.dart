@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
+import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/user_service.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 
@@ -35,16 +36,33 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
 
     SearchData result =
         await UserService().getUserByNickanemAndTag(nickname, tag);
-    final List<SearchUser> foundUsers = result.data ?? [];
 
-    final Map<String, bool> friendMap = {};
-    final Map<String, bool> requestMap = {};
+    final userID = await SecureStorage().storage.read(key: "userID");
 
-    for (var user in foundUsers) {
-      final id = user.id ?? "";
-      friendMap[id] = await FriendService().checkIsFriend(id);
-      requestMap[id] = await FriendService().alreadyRequestFriend(id);
-    }
+    // 나 자신 제외
+    final List<SearchUser> foundUsers =
+        (result.data ?? []).where((user) => user.id != userID).toList();
+
+    // 병렬 요청 처리
+    final friendStatusResults = await Future.wait(
+      foundUsers.map((user) async {
+        final id = user.id ?? "";
+        final isFriend = await FriendService().checkIsFriend(id);
+        return MapEntry(id, isFriend);
+      }),
+    );
+
+    final requestStatusResults = await Future.wait(
+      foundUsers.map((user) async {
+        final id = user.id ?? "";
+        final isRequested = await FriendService().alreadyRequestFriend(id);
+        return MapEntry(id, isRequested);
+      }),
+    );
+
+    // Map 형태로 변환
+    final Map<String, bool> friendMap = Map.fromEntries(friendStatusResults);
+    final Map<String, bool> requestMap = Map.fromEntries(requestStatusResults);
 
     setState(() {
       users = foundUsers;
@@ -81,6 +99,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
               if (e != '') {
                 await searchUser(e);
               }
+              setState(() {});
             },
             controller: _searchController,
             leading: Padding(
