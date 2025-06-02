@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/data/friend_data.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
+
+import '../../data/static/friend_data.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
