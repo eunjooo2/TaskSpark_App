@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/achievement_page.dart';
-import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/pocket_base.dart';
-import 'package:task_spark/utils/secure_storage.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../data/user.dart';
+import '../../util/pocket_base.dart';
+import '../../util/secure_storage.dart';
 
 class TaskSparkDrawer extends StatefulWidget {
   const TaskSparkDrawer({super.key});

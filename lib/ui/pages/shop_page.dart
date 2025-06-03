@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:task_spark/data/shop_item_data.dart';
+
+import '../../data/static/shop_item_data.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({super.key});
@@ -11,6 +12,7 @@ class ShopPage extends StatefulWidget {
 class _ShopPageState extends State<ShopPage> {
   int userPoints = 50000;
   String searchQuery = "";
+
   @override
   Widget build(BuildContext context) {
     final filteredItems = allItems.where((item) {

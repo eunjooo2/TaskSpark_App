@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/main_page.dart';
-import 'package:task_spark/utils/pocket_base.dart';
-import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/ui/widgets/login_button.dart';
+
+import '../../util/pocket_base.dart';
+import '../../util/secure_storage.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

@@ -1,4 +1,4 @@
-import 'package:task_spark/utils/models/achievement.dart';
+import '../achievement.dart';
 import 'achievement_data.dart';
 
 // 해금된 업적 저장
