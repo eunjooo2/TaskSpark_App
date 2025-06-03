@@ -11,7 +11,7 @@ import 'package:task_spark/utils/services/friend_service.dart';
 import 'package:task_spark/utils/services/user_service.dart';
 
 class FriendExpanision extends StatefulWidget {
-  FriendExpanision({
+  const FriendExpanision({
     Key? key,
     required this.title,
     required this.expanisionType,
@@ -19,7 +19,7 @@ class FriendExpanision extends StatefulWidget {
     required this.isReceived,
     this.onDataChanged,
     this.onTap,
-  });
+  }) : super(key: key);
 
   final String title;
   final String expanisionType;
@@ -39,59 +39,42 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     "normal",
   ];
 
-  Widget? _buildActionButtons(String recordID, String type) {
-    switch (type) {
-      case "received":
-        return Row(
-          children: [
-            IconButton(
-              onPressed: () async {
-                await FriendService().acceptFriendRequest(recordID);
-                if (widget.onDataChanged != null) {
-                  widget.onDataChanged!();
-                }
-              },
-              icon: FaIcon(
-                FontAwesomeIcons.check,
-                color: Colors.green,
-                size: 18.sp,
-              ),
-            ),
-            IconButton(
-              onPressed: () async {
-                await FriendService().rejectFriendRequest(recordID);
-                if (widget.onDataChanged != null) {
-                  widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
-                }
-              },
-              icon: FaIcon(
-                FontAwesomeIcons.x,
-                color: Colors.red,
-                size: 18.sp,
-              ),
-            ),
-          ],
-        );
-      case "transmited":
-        return TextButton(
-          onPressed: () async {
-            await FriendService().rejectFriendRequest(recordID);
-            if (widget.onDataChanged != null) {
-              widget.onDataChanged!(); // 상위에서 전체 데이터 새로고침
-            }
-          },
-          child: Text(
-            "요청 취소",
-            style: TextStyle(
-              fontSize: 14.sp,
-            ),
-          ),
-        );
+  List<User?> users = [];
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.data.isNotEmpty) {
+      users = List<User?>.filled(widget.data.length, null);
+      loadUsers();
     }
-    return null;
   }
 
-  List<User?> users = [];
+  @override
+  void didUpdateWidget(covariant FriendExpanision oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.data.length != users.length) {
+      users = List<User?>.filled(widget.data.length, null);
+      loadUsers();
+    }
+  }
+
+  Future<void> loadUsers() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    List<User?> loadedUsers = List<User?>.filled(widget.data.length, null);
+    for (int i = 0; i < widget.data.length; i++) {
+      loadedUsers[i] = await _fetchUser(i);
+    }
+
+    setState(() {
+      users = loadedUsers;
+      isLoading = false;
+    });
+  }
 
   Future<String> getOtherUserID(FriendRequest request) async {
     String? myUserID = await SecureStorage().storage.read(key: "userID");
@@ -112,31 +95,50 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     return data;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.data.isNotEmpty) {
-      users = List<User?>.filled(widget.data.length, null);
-      loadUsers(); // 비동기 로드 함수 분리
+  Widget? _buildActionButtons(String recordID, String type) {
+    switch (type) {
+      case "received":
+        return Row(
+          children: [
+            IconButton(
+              onPressed: () async {
+                await FriendService().acceptFriendRequest(recordID);
+                widget.onDataChanged?.call();
+              },
+              icon: FaIcon(
+                FontAwesomeIcons.check,
+                color: Colors.green,
+                size: 18.sp,
+              ),
+            ),
+            IconButton(
+              onPressed: () async {
+                await FriendService().rejectFriendRequest(recordID);
+                widget.onDataChanged?.call();
+              },
+              icon: FaIcon(
+                FontAwesomeIcons.x,
+                color: Colors.red,
+                size: 18.sp,
+              ),
+            ),
+          ],
+        );
+      case "transmited":
+        return TextButton(
+          onPressed: () async {
+            await FriendService().rejectFriendRequest(recordID);
+            widget.onDataChanged?.call();
+          },
+          child: Text(
+            "요청 취소",
+            style: TextStyle(
+              fontSize: 14.sp,
+            ),
+          ),
+        );
     }
-  }
-
-  Future<void> loadUsers() async {
-    for (int i = 0; i < widget.data.length; i++) {
-      User user = await _fetchUser(i);
-      setState(() {
-        users[i] = user;
-      });
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant FriendExpanision oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.data.length != users.length) {
-      users = List<User?>.filled(widget.data.length, null);
-      loadUsers();
-    }
+    return null;
   }
 
   @override
@@ -148,9 +150,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
       title: Row(
         children: [
           const Expanded(
-            child: Divider(
-              color: Colors.amber,
-            ),
+            child: Divider(color: Colors.amber),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 1.w),
@@ -164,59 +164,125 @@ class _FriendExpanisionState extends State<FriendExpanision> {
             ),
           ),
           const Expanded(
-            child: Divider(
-              color: Colors.amber,
-            ),
+            child: Divider(color: Colors.amber),
           ),
         ],
       ),
       children: [
-        ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: widget.data.length,
-          itemBuilder: (context, index) {
-            if (widget.data.isEmpty) {
-              return Padding(
-                padding: EdgeInsets.all(2.h),
-                child: Center(
-                  child: Text(
-                    "데이터가 없습니다",
-                    style: TextStyle(fontSize: 16.sp),
-                  ),
-                ),
-              );
-            } else {
+        if (isLoading)
+          Padding(
+            padding: EdgeInsets.all(2.h),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (widget.data.isEmpty)
+          Padding(
+            padding: EdgeInsets.all(2.h),
+            child: Center(
+              child: Text(
+                "${widget.expanisionType == "received" ? "받은 요청이" : (widget.expanisionType == "transmited" ? "전송한 요청이" : "친구가")} 없습니다.${widget.expanisionType == "normal" ? "\n친구를 추가해 보세요!" : ""}",
+                style: TextStyle(fontSize: 16.sp),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.data.length,
+            itemBuilder: (context, index) {
               final user = users[index];
               if (user == null) {
                 return Padding(
                   padding: EdgeInsets.all(2.h),
                   child: Row(
                     children: [
-                      CircularProgressIndicator(),
+                      const CircularProgressIndicator(),
                       SizedBox(width: 2.w),
-                      Text("유저 정보 로딩 중..."),
+                      const Text("유저 정보 로딩 중..."),
                     ],
                   ),
                 );
               } else {
                 return FriendCard(
-                    generalUser: user,
-                    actionButtons: _buildActionButtons(
-                        widget.data[index].id, widget.expanisionType),
-                    onTap: () {
-                      final image = user.avatar != null &&
-                              user.avatar!.isNotEmpty
-                          ? NetworkImage("https://pb.aroxu.me/${user.avatar!}")
-                          : const AssetImage(
-                                  "assets/images/default_profile.png")
-                              as ImageProvider;
-                      if (widget.expanisionType == "normal") {
-                        AwesomeDialog(
-                          context: context,
-                          animType: AnimType.scale,
-                          dialogType: DialogType.noHeader,
-                          body: Column(children: [
+                  generalUser: user,
+                  actionButtons: _buildActionButtons(
+                      widget.data[index].id, widget.expanisionType),
+                  onTap: () {
+                    final image = user.avatar != null && user.avatar!.isNotEmpty
+                        ? NetworkImage("https://pb.aroxu.me/${user.avatar!}")
+                        : const AssetImage("assets/images/default_profile.png")
+                            as ImageProvider;
+                    if (widget.expanisionType == "normal") {
+                      AwesomeDialog(
+                        context: context,
+                        animType: AnimType.scale,
+                        dialogType: DialogType.noHeader,
+                        body: Column(children: [
+                          Text(
+                            "${user.nickname}#${user.tag}님의 정보",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 17.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 3.h),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(left: 5.w),
+                                child: CircleAvatar(
+                                  radius: 25.sp,
+                                  backgroundImage: image,
+                                  backgroundColor: Colors.grey[200],
+                                ),
+                              ),
+                              SizedBox(width: 10.w),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("이름: ${user.name}"),
+                                  Text("닉네임: ${user.nickname}"),
+                                  Text("레벨: ${50}"),
+                                  Text(
+                                      "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 2.h),
+                        ]),
+                        btnOkText: "라이벌 신청",
+                        btnOkOnPress: () {},
+                        btnCancelText: "친구 삭제",
+                        btnCancelOnPress: () {
+                          AwesomeDialog(
+                            context: context,
+                            dialogType: DialogType.question,
+                            animType: AnimType.scale,
+                            title: "친구 삭제",
+                            desc: "정말로 삭제하시겠습니까?",
+                            btnOkText: "예",
+                            btnOkOnPress: () async {
+                              await FriendService()
+                                  .rejectFriendRequest(widget.data[index].id);
+                              widget.onDataChanged?.call();
+                            },
+                            btnCancelText: "아니요",
+                            btnCancelOnPress: () {},
+                            reverseBtnOrder: true,
+                          ).show();
+                        },
+                        reverseBtnOrder: true,
+                      ).show();
+                    } else {
+                      AwesomeDialog(
+                        context: context,
+                        animType: AnimType.scale,
+                        dialogType: DialogType.noHeader,
+                        body: Column(
+                          children: [
                             Text(
                               "${user.nickname}#${user.tag}님의 정보",
                               style: TextStyle(
@@ -249,19 +315,16 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 2.h),
-                          ]),
-                          btnOkText: "라이벌 신청",
-                          btnOkOnPress: () {},
-                          btnCancelText: "친구 삭제",
-                          btnCancelOnPress: () {},
-                        ).show();
-                      }
-                    });
+                            SizedBox(height: 4.h),
+                          ],
+                        ),
+                      ).show();
+                    }
+                  },
+                );
               }
-            }
-          },
-        ),
+            },
+          ),
       ],
     );
   }

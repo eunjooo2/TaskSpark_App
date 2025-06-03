@@ -26,7 +26,7 @@ class FriendService {
         await PocketB().pocketBase.collection('friends').getOne(recordID));
   }
 
-  Future<void> sendFriendRequest(String targetUserId) async {
+  Future<RecordModel> sendFriendRequest(String targetUserId) async {
     final userID = await SecureStorage().storage.read(key: "userID");
     final body = <String, dynamic>{
       "sender": userID,
@@ -35,7 +35,7 @@ class FriendService {
       "isBlocked": false,
     };
 
-    await PocketB().pocketBase.collection('friends').create(body: body);
+    return await PocketB().pocketBase.collection('friends').create(body: body);
   }
 
   Future<void> rejectFriendRequest(String recordID) async {
@@ -80,13 +80,37 @@ class FriendService {
     return friends.length == 1;
   }
 
-  Future<String> getRequestIDByTargetID(String targetUserId) async {
+  Future<RecordModel> getRequestByTargetID(String targetUserId) async {
     String userID = await SecureStorage().storage.read(key: "userID") ?? "";
 
     final friends = await PocketB().pocketBase.collection('friends').getFullList(
         filter:
             "((sender.id='$userID'&&receiver.id='$targetUserId')||sender.id='$targetUserId'&&receiver.id='$userID')&&isAccepted=false");
 
-    return friends[0].id;
+    return friends[0];
+  }
+
+  Future<RecordModel> getFriendByTargetID(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||sender.id='$targetUserId'&&receiver.id='$userID')");
+
+    return friends[0];
+  }
+
+  Future<void> blockFriend(String targetUserId) async {
+    late RecordModel record;
+    try {
+      record = await getFriendByTargetID(targetUserId);
+    } catch (e) {
+      record = await sendFriendRequest(targetUserId);
+    }
+    record.data["isBlocked"] = true;
+    await PocketB()
+        .pocketBase
+        .collection('friends')
+        .update(record.id, body: record.data);
   }
 }

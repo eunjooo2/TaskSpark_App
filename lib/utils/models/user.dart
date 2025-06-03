@@ -111,7 +111,7 @@ class SearchData {
 
 class SearchUser {
   String? avatar;
-  String? created;
+  DateTime? created;
   num? exp;
   String? id;
   String? nickname;
@@ -129,7 +129,7 @@ class SearchUser {
   factory SearchUser.fromJson(Map<String, dynamic> json) {
     return SearchUser(
       avatar: json["avatar"] != null ? json["avatar"] as String : null,
-      created: json["created"] as String,
+      created: DateTime.tryParse(json["created"]),
       exp: json["exp"],
       id: json["id"] as String,
       nickname: json["nickname"] as String,
