@@ -1,264 +1,234 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/data/achievement_data.dart';
-import 'package:task_spark/ui/pages/achievement.dart';
-import 'package:task_spark/data/achievement_manager.dart'; //  해금 여부 확인용
+import 'package:task_spark/data/achievement_manager.dart';
+import 'package:task_spark/models/achievement.dart';
 
-class ArchievePage extends StatefulWidget {
-  const ArchievePage({super.key});
+class AchievementPage extends StatelessWidget {
+  final Map<String, int> userValues;
+  final String nickname;
+  final num exp;
 
-  @override
-  State<ArchievePage> createState() => _ArchievePageState();
-}
+  const AchievementPage({
+    super.key,
+    required this.userValues,
+    required this.nickname,
+    required this.exp,
+  });
 
-class _ArchievePageState extends State<ArchievePage> {
-  final int unlockedCount = 5;
-
-  String getCurrentTier(int unlockedCount) {
-    if (unlockedCount < 5) return "bronze";
-    if (unlockedCount < 15) return "silver";
-    if (unlockedCount < 30) return "gold";
-    if (unlockedCount < 50) return "platinum";
-    return "diamond";
-  }
-
-  bool isTierUnlocked(int index, int unlockedCount) {
-    if (unlockedCount < 5) return index < 5;
-    if (unlockedCount < 15) return index < 15;
-    if (unlockedCount < 30) return index < 30;
-    if (unlockedCount < 50) return index < 50;
-    return true;
-  }
-
-  Color getMedalColor(String tier, bool isUnlocked) {
-    if (!isUnlocked) return Colors.grey;
-    switch (tier) {
-      case "bronze":
-        return const Color.fromARGB(255, 173, 109, 44);
-      case "silver":
-        return const Color.fromARGB(255, 184, 184, 184);
-      case "gold":
-        return const Color(0xFFFD7D0D);
-      case "platinum":
-        return const Color(0xFF00FFFF);
-      case "diamond":
-        return const Color(0xFF6A5ACD);
-      default:
-        debugPrint("알 수 없는 tier: $tier");
-        return Colors.black;
-    }
-  }
+  static const List<String> tierNames = ['브론즈', '실버', '골드', '플래티넘', '다이아'];
 
   @override
   Widget build(BuildContext context) {
-    final currentTier = getCurrentTier(unlockedCount);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("업적"),
+        title: Text('업적 리스트',
+            style: TextStyle(color: Theme.of(context).colorScheme.secondary)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: BackButton(
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+          color: Theme.of(context).colorScheme.secondary,
+        ),
       ),
       body: Column(
         children: [
-          _buildProfileHeader(),
-          const SizedBox(height: 10),
-          _buildMedalGrid(currentTier),
+          _buildTopBar(),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.builder(
+              itemCount: achievements.length,
+              itemBuilder: (context, index) {
+                final achievement = achievements[index];
+                final int userValue = userValues[achievement.type] ?? 0;
+                final int tierIndex = AchievementManager.getCurrentTierIndex(
+                    achievement, userValue);
+                final double progress =
+                    AchievementManager.getProgressToNextTier(
+                        achievement, userValue);
+                final String tierName =
+                    AchievementManager.getTierName(tierIndex);
+
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 3,
+                  color: const Color(0xFF2A241F),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.emoji_events,
+                            size: 40, color: _getTierColor(tierName)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                achievement.isHidden &&
+                                        !AchievementManager.isUnlocked(
+                                            achievement)
+                                    ? '???'
+                                    : achievement.title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                achievement.isHidden &&
+                                        !AchievementManager.isUnlocked(
+                                            achievement)
+                                    ? '해금 전까지 비공개'
+                                    : achievement.description,
+                                style: TextStyle(color: Colors.grey[400]),
+                              ),
+                              const SizedBox(height: 8),
+                              Stack(
+                                children: [
+                                  Row(
+                                    children: List.generate(5, (i) {
+                                      return Expanded(
+                                        child: Container(
+                                          height: 8,
+                                          color: _getTierColorByIndex(i)
+                                              .withOpacity(0.4),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  FractionallySizedBox(
+                                    widthFactor: progress.clamp(0.0, 1.0),
+                                    child: Container(
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: _getTierColor(tierName),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$tierName 등급 • ${(progress * 100).toInt()}% 진행 중',
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.grey[200],
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
         children: [
           Stack(
             alignment: Alignment.bottomRight,
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.deepOrange,
-                    width: 2,
-                  ),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.asset(
-                  'assets/images/default_profile.png',
-                  fit: BoxFit.cover,
-                ),
+              const CircleAvatar(
+                radius: 32,
+                backgroundImage: AssetImage('assets/profile/tiger.png'),
               ),
               Positioned(
                 bottom: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(6),
                   decoration: const BoxDecoration(
-                    color: Colors.orange,
+                    color: Colors.black,
                     shape: BoxShape.circle,
                   ),
-                  child:
-                      const Text("35", style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    '50',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          const Expanded(
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 4),
-                  child: Text(
-                    "디스커버즈님 환영합니다!",
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 82, 82, 82),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 5),
-                Row(
+                Text('$nickname님 환영합니다!',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Row(
                   children: [
-                    SizedBox(width: 2),
-                    Icon(Icons.local_fire_department, color: Colors.orange),
-                    Text(
-                      "1.5x",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 223, 164, 76),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: LinearProgressIndicator(
-                              value: 36 / 279,
-                              backgroundColor:
-                                  Color.fromARGB(255, 179, 199, 222),
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.orange),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text("5/279"),
-                        ],
-                      ),
-                    ),
+                    Icon(Icons.local_fire_department,
+                        color: Colors.orange, size: 18),
+                    SizedBox(width: 4),
+                    Text('1.0x', style: TextStyle(color: Colors.white)),
                   ],
+                ),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(
+                  value: exp.toDouble(),
+                  minHeight: 8,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMedalGrid(String currentTier) {
-    return Expanded(
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: achievements.length,
-        itemBuilder: (context, index) {
-          final achievement = achievements[index];
-          final isTierVisible = isTierUnlocked(index, unlockedCount);
-          final isUnlocked = index < unlockedCount;
-          final tier = getCurrentTier(index);
-          final medalColor = getMedalColor(tier, isUnlocked);
+  Color _getTierColor(String tier) {
+    switch (tier) {
+      case '브론즈':
+        return Colors.brown;
+      case '실버':
+        return Colors.grey;
+      case '골드':
+        return Colors.amber;
+      case '플래티넘':
+        return Colors.blueAccent;
+      case '다이아':
+        return Colors.cyan;
+      default:
+        return Colors.black26;
+    }
+  }
 
-          //  히든 업적 처리
-          final isHidden = achievement.isHidden;
-          final displayTitle =
-              (!isUnlocked && isHidden) ? "???" : achievement.title;
-          final displayDescription = (!isUnlocked && isHidden)
-              ? "해금되지 않은 히든 업적입니다."
-              : achievement.description;
-
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: 1.h),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(displayTitle),
-                    content: Text(displayDescription),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("확인"),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    height: 10.h,
-                    decoration: BoxDecoration(
-                      color: isUnlocked
-                          ? const Color.fromARGB(255, 255, 255, 255)
-                          : isTierVisible
-                              ? const Color.fromARGB(255, 176, 176, 176)
-                              : const Color.fromARGB(255, 176, 176, 176),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: medalColor,
-                        width: 2,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      displayTitle, //  변경
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isUnlocked ? Colors.black : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 40,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: FaIcon(
-                        FontAwesomeIcons.medal,
-                        size: 24,
-                        color: isUnlocked ? medalColor : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  if (!isUnlocked)
-                    const Positioned(
-                      right: 30,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Icon(
-                          FontAwesomeIcons.lock,
-                          size: 25,
-                          color: Color.fromARGB(255, 116, 116, 116),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
+  Color _getTierColorByIndex(int index) {
+    switch (index) {
+      case 0:
+        return Colors.brown;
+      case 1:
+        return Colors.grey;
+      case 2:
+        return Colors.amber;
+      case 3:
+        return Colors.blueAccent;
+      case 4:
+        return Colors.cyan;
+      default:
+        return Colors.black26;
+    }
   }
 }

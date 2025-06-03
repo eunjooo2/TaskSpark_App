@@ -14,7 +14,8 @@ class TaskSparkDrawer extends StatefulWidget {
 }
 
 class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
-  User? user;
+
+  User? myUser;
 
   @override
   void initState() {
@@ -26,9 +27,10 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
     final fetchedUser = await PocketB().getUserByID(id);
     setState(() {
-      user = fetchedUser;
+      myUser = fetchedUser;
     });
   }
+
 
   Widget _getDrawerIconRow(
     IconData icon,
@@ -106,7 +108,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: user != null
+      child: myUser != null
           ? ListView(
               padding: EdgeInsets.zero,
               children: [
@@ -121,25 +123,14 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                    accountName: Text(
-                      user!.name ?? "",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                    accountEmail: Text(
-                      user!.email ?? "",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                    currentAccountPicture: CircleAvatar(
-                      backgroundImage: user!.avatar != null &&
-                              user!.avatar!.isNotEmpty
-                          ? NetworkImage(
-                              "https://pb.aroxu.me/api/files/${user!.collectionId}/${user!.id}/${user!.avatar}")
-                          : const AssetImage(
-                              "assets/images/default_profile.png"),
+                     accountName: Text(myUser!.name ?? ""),
+        accountEmail: Text(myUser!.email ?? ""),
+        currentAccountPicture: CircleAvatar(
+          backgroundImage: myUser!.avatar != null && myUser!.avatar!.isNotEmpty
+              ? NetworkImage(
+                  "https://pb.aroxu.me/api/files/${myUser!.collectionId}/${myUser!.id}/${myUser!.avatar}")
+              : const AssetImage("assets/images/default_profile.png") as ImageProvider,
+       
                     ),
                   ),
                 ),
@@ -160,20 +151,30 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                         "인벤토리",
                         () {},
                       ),
-                      _getDrawerIconRow(
+                     _getDrawerIconRow(
                         FontAwesomeIcons.medal,
                         "업적",
                         () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ArchievePage();
-                              },
-                            ),
-                          );
+                          if (myUser != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return AchievementPage(
+                                    userValues: {
+                                      'make_task': 25, 
+                                      'block_friend': 1,
+                                    },
+                                   nickname: myUser!.nickname ?? '익명',
+                                   exp: myUser!.exp ?? 0.0,
+                                  );
+                                },
+                              ),
+                            );
+                          }
                         },
                       ),
+
                       _getDrawerIconRow(
                         FontAwesomeIcons.rightFromBracket,
                         "로그아웃",

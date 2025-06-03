@@ -9,8 +9,10 @@ class User {
   bool? emailVisibility;
   bool? verified;
   String? name;
+  String? nickname;
   String? avatar;
-  int? exp;
+  num? exp;
+  int? tag;
   Map<String, dynamic>? inventory;
   DateTime? created;
   DateTime? updated;
@@ -23,8 +25,10 @@ class User {
     this.emailVisibility,
     this.verified,
     this.name,
+    this.nickname,
     this.avatar,
     this.exp,
+    this.tag,
     this.inventory,
     this.created,
     this.updated,
@@ -36,6 +40,8 @@ class User {
       "collectionId": collectionId,
       "collectionName": collectionName,
       "id": id,
+      "nickname": nickname,
+      "tag":tag,
       "email": email,
       "emailVisibility": emailVisibility,
       "verified": verified,
@@ -54,11 +60,13 @@ class User {
       collectionName: record.collectionName,
       id: record.id,
       email: record.data["email"] as String?,
+      nickname: record.data["nickname"] as String?,
       emailVisibility: record.data["emailVisibility"] as bool?,
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
       avatar: record.data["avatar"] as String?,
-      exp: record.data["exp"] as int?,
+      exp: record.data["exp"] as num?,
+      tag: record.data["tag"] as int?,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
