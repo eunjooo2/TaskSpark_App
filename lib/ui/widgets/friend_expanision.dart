@@ -8,6 +8,7 @@ import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/user.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
+import 'package:task_spark/utils/services/rival_service.dart';
 import 'package:task_spark/utils/services/user_service.dart';
 
 class FriendExpanision extends StatefulWidget {
@@ -40,6 +41,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
   ];
 
   List<User?> users = [];
+  List<bool> rivalRequestExists = [];
   bool isLoading = false;
 
   @override
@@ -56,6 +58,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     super.didUpdateWidget(oldWidget);
     if (widget.data.length != users.length) {
       users = List<User?>.filled(widget.data.length, null);
+      rivalRequestExists = List<bool>.filled(widget.data.length, false);
       loadUsers();
     }
   }
@@ -66,12 +69,16 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     });
 
     List<User?> loadedUsers = List<User?>.filled(widget.data.length, null);
+    List<bool> loadedRequests = List<bool>.filled(widget.data.length, false);
     for (int i = 0; i < widget.data.length; i++) {
       loadedUsers[i] = await _fetchUser(i);
+
+      loadedRequests[i] = await RivalService().isSendRequest(widget.data[i]);
     }
 
     setState(() {
       users = loadedUsers;
+      rivalRequestExists = loadedRequests;
       isLoading = false;
     });
   }
@@ -191,6 +198,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.data.length,
             itemBuilder: (context, index) {
+              DateTime? startDate = DateTime.now();
+              DateTime? endDate = DateTime.now();
               final user = users[index];
               if (user == null) {
                 return Padding(
@@ -253,8 +262,196 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                           ),
                           SizedBox(height: 2.h),
                         ]),
+                        btnOk: rivalRequestExists[index] == true
+                            ? ElevatedButton(
+                                onPressed: () {},
+                                style: const ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    Colors.grey,
+                                  ),
+                                ),
+                                child: const Text(
+                                  "이미 신청됨",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : null,
                         btnOkText: "라이벌 신청",
-                        btnOkOnPress: () {},
+                        btnOkOnPress: rivalRequestExists[index] == true
+                            ? null
+                            : () async {
+                                DateTime tempStartDate = startDate;
+                                DateTime tempEndDate = endDate;
+                                AwesomeDialog(
+                                  context: context,
+                                  dialogType: DialogType.noHeader,
+                                  animType: AnimType.scale,
+                                  btnOk: AnimatedButton(
+                                    isFixedHeight: false,
+                                    pressEvent: () async {
+                                      if (tempEndDate
+                                              .difference(tempStartDate) <
+                                          Duration(days: 13)) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: Text(
+                                                "종료일은 시작일로부터 최소 14일 이후입니다."),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (tempStartDate.compareTo(tempEndDate) >
+                                          0) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content:
+                                                Text("시작일과 종료일을 다시 확인해주세요."),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      try {
+                                        await RivalService().sendRivalRequest(
+                                            tempStartDate,
+                                            tempEndDate,
+                                            widget.data[index]);
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content: Text("라이벌 신청을 보냈습니다!"),
+                                          ),
+                                        );
+
+                                        loadUsers();
+                                        Navigator.of(context).pop();
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            content:
+                                                Text("라이벌 신청중 오류가 발생하였습니다."),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    text: '라이벌 신청',
+                                    color: const Color(0xFF00CA71),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(50)),
+                                    buttonTextStyle: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  btnCancelText: "취소",
+                                  btnCancelOnPress: () {},
+                                  reverseBtnOrder: true,
+                                  body: StatefulBuilder(
+                                    builder: (context, setInnerState) {
+                                      return SizedBox(
+                                        width: 80.w,
+                                        height: 25.h,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                "라이벌 신청하기",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 18.sp,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(height: 5.h),
+                                            Row(
+                                              children: [
+                                                SizedBox(width: 5.w),
+                                                ElevatedButton(
+                                                  onPressed: () async {
+                                                    final picked =
+                                                        await showDatePicker(
+                                                      context: context,
+                                                      initialDate:
+                                                          tempStartDate,
+                                                      firstDate: DateTime(2000),
+                                                      lastDate: DateTime(2100),
+                                                    );
+                                                    if (picked != null) {
+                                                      setInnerState(() {
+                                                        tempStartDate = picked;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: Text("시작 날짜 선택"),
+                                                ),
+                                                SizedBox(width: 3.w),
+                                                Text(
+                                                  DateFormat("yyyy년 MM월 dd일")
+                                                      .format(tempStartDate),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 2.h),
+                                            Row(
+                                              children: [
+                                                SizedBox(width: 5.w),
+                                                ElevatedButton(
+                                                  onPressed: () async {
+                                                    final picked =
+                                                        await showDatePicker(
+                                                      context: context,
+                                                      initialDate: tempEndDate,
+                                                      firstDate: DateTime(2000),
+                                                      lastDate: DateTime(2100),
+                                                    );
+                                                    if (picked != null) {
+                                                      setInnerState(() {
+                                                        tempEndDate = DateTime(
+                                                          picked.year,
+                                                          picked.month,
+                                                          picked.day,
+                                                          4, // 시간을 4시로 설정
+                                                        );
+                                                      });
+                                                    }
+                                                  },
+                                                  child: Text("종료 날짜 선택"),
+                                                ),
+                                                SizedBox(width: 3.w),
+                                                Text(
+                                                  DateFormat("yyyy년 MM월 dd일")
+                                                      .format(tempEndDate),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 2.h),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ).show();
+                              },
                         btnCancelText: "친구 삭제",
                         btnCancelOnPress: () {
                           AwesomeDialog(

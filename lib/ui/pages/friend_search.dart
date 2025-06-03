@@ -10,6 +10,8 @@ import 'package:task_spark/utils/services/user_service.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 
 class FriendSearchPage extends StatefulWidget {
+  const FriendSearchPage({super.key});
+
   @override
   State<FriendSearchPage> createState() => _FriendSearchPageState();
 }
@@ -25,7 +27,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
     super.initState();
   }
 
-  bool isLoading = false; // 로딩 상태 추가
+  bool isLoading = false;
 
   Future<void> searchUser(String e) async {
     setState(() {
@@ -54,7 +56,6 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
       final List<SearchUser> foundUsers =
           (result.data ?? []).where((user) => user.id != userID).toList();
 
-// 정렬을 나중에 friendStatus 정보로 하기 위해 일단 먼저 세팅
       final friendStatusResults = await Future.wait(
         foundUsers.map((user) async {
           final id = user.id ?? "";
@@ -71,17 +72,15 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
         }),
       );
 
-// friendStatus, requestStatus 세팅
       friendStatus = Map.fromEntries(friendStatusResults);
       requestStatus = Map.fromEntries(requestStatusResults);
 
-// ✅ 여기서 정렬 수행 (친구 여부 → 닉네임 순)
       foundUsers.sort((a, b) {
         final aIsFriend = friendStatus[a.id] ?? false;
         final bIsFriend = friendStatus[b.id] ?? false;
 
         if (aIsFriend != bIsFriend) {
-          return bIsFriend ? 1 : -1; // 친구(true)가 앞으로
+          return bIsFriend ? 1 : -1;
         }
         return a.nickname!.compareTo(b.nickname!);
       });
@@ -116,7 +115,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
           onPressed: () {
             Navigator.pop(context, true);
           },
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.secondary,
         ),
       ),
       body: Column(
@@ -221,9 +220,11 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
                                                   );
                                                 }
                                               },
-                                              child: Text("친구 요청",
-                                                  style: TextStyle(
-                                                      fontSize: 14.sp)),
+                                              child: Text(
+                                                "친구 요청",
+                                                style:
+                                                    TextStyle(fontSize: 14.sp),
+                                              ),
                                             ),
                                   onTap: () {
                                     final image = user.avatar != null &&

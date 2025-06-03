@@ -19,6 +19,8 @@ class _SocialPageState extends State<SocialPage>
   late List<FriendRequest> receiveFriendRequest = [];
   late List<FriendRequest> sentFriendRequest = [];
   late List<FriendRequest> acceptedFriends = [];
+  bool isFriendLoading = true;
+  bool isRivalLoading = true;
 
   @override
   void didChangeDependencies() {
@@ -59,8 +61,12 @@ class _SocialPageState extends State<SocialPage>
       acceptedFriends = friendRequests
           .where((f) => f.status == FriendRequestStatus.accepted)
           .toList();
+
+      isFriendLoading = false;
     });
   }
+
+  Future<void> getRival() async {}
 
   @override
   void initState() {
@@ -76,10 +82,6 @@ class _SocialPageState extends State<SocialPage>
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = receiveFriendRequest.isEmpty &&
-        sentFriendRequest.isEmpty &&
-        acceptedFriends.isEmpty;
-
     return Scaffold(
       appBar: TabBar(
         controller: tabController,
@@ -94,7 +96,7 @@ class _SocialPageState extends State<SocialPage>
       body: TabBarView(
         controller: tabController,
         children: [
-          isLoading
+          isFriendLoading
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
                   child: Column(
