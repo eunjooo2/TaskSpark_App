@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/data/achievement_data.dart';
-import 'package:task_spark/ui/pages/achievement.dart';
-import 'package:task_spark/data/achievement_manager.dart'; //  해금 여부 확인용
 
 class ArchievePage extends StatefulWidget {
   const ArchievePage({super.key});
