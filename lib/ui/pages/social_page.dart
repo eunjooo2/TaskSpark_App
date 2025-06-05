@@ -26,6 +26,7 @@ class _SocialPageState extends State<SocialPage>
   late List<RivalRequest> sentRivalRequest = [];
   bool isFriendLoading = true;
   bool isRivalLoading = true;
+  bool isMatched = false;
 
   @override
   void didChangeDependencies() {
@@ -44,6 +45,7 @@ class _SocialPageState extends State<SocialPage>
 
   @override
   void didPopNext() {
+    _fetchMatch();
     getFriend();
     getRival();
   }
@@ -82,9 +84,17 @@ class _SocialPageState extends State<SocialPage>
     });
   }
 
+  Future<void> _fetchMatch() async {
+    final matchResult = await RivalService().isMatchedRival();
+    setState(() {
+      isMatched = matchResult;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _fetchMatch();
     getFriend();
     getRival();
     tabController = TabController(
@@ -142,27 +152,33 @@ class _SocialPageState extends State<SocialPage>
                 ),
           isRivalLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 2.h),
-                      RivalExpanision(
-                        title: "요청 받은 라이벌 목록",
-                        expanisionType: "received",
-                        data: receiveRivalRequest,
-                        isReceived: true,
-                        onDataChanged: getRival,
+              : (isMatched
+                  ? const Center(
+                      child: Text(
+                        "매칭 성공",
                       ),
-                      RivalExpanision(
-                        title: "전송한 라이벌 요청 목록",
-                        expanisionType: "transmited",
-                        data: sentRivalRequest,
-                        isReceived: false,
-                        onDataChanged: getRival,
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 2.h),
+                          RivalExpanision(
+                            title: "요청 받은 라이벌 목록",
+                            expanisionType: "received",
+                            data: receiveRivalRequest,
+                            isReceived: true,
+                            onDataChanged: getRival,
+                          ),
+                          RivalExpanision(
+                            title: "전송한 라이벌 요청 목록",
+                            expanisionType: "transmited",
+                            data: sentRivalRequest,
+                            isReceived: false,
+                            onDataChanged: getRival,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    )),
         ],
       ),
     );
