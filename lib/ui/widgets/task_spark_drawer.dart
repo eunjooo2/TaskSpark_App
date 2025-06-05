@@ -14,7 +14,6 @@ class TaskSparkDrawer extends StatefulWidget {
 }
 
 class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
-
   User? myUser;
 
   @override
@@ -30,7 +29,6 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
       myUser = fetchedUser;
     });
   }
-
 
   Widget _getDrawerIconRow(
     IconData icon,
@@ -123,14 +121,16 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                     accountName: Text(myUser!.name ?? ""),
-        accountEmail: Text(myUser!.email ?? ""),
-        currentAccountPicture: CircleAvatar(
-          backgroundImage: myUser!.avatar != null && myUser!.avatar!.isNotEmpty
-              ? NetworkImage(
-                  "https://pb.aroxu.me/api/files/${myUser!.collectionId}/${myUser!.id}/${myUser!.avatar}")
-              : const AssetImage("assets/images/default_profile.png") as ImageProvider,
-       
+                    accountName: Text(myUser!.name ?? ""),
+                    accountEmail: Text(myUser!.email ?? ""),
+                    currentAccountPicture: CircleAvatar(
+                      backgroundImage: myUser!.avatar != null &&
+                              myUser!.avatar!.isNotEmpty
+                          ? NetworkImage(
+                              "https://pb.aroxu.me/api/files/${myUser!.collectionId}/${myUser!.id}/${myUser!.avatar}")
+                          : const AssetImage(
+                                  "assets/images/default_profile.png")
+                              as ImageProvider,
                     ),
                   ),
                 ),
@@ -151,7 +151,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                         "인벤토리",
                         () {},
                       ),
-                     _getDrawerIconRow(
+                      _getDrawerIconRow(
                         FontAwesomeIcons.medal,
                         "업적",
                         () {
@@ -159,22 +159,20 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) {
-                                  return AchievementPage(
-                                    userValues: {
-                                      'make_task': 25, 
-                                      'block_friend': 1,
-                                    },
-                                   nickname: myUser!.nickname ?? '익명',
-                                   exp: myUser!.exp ?? 0.0,
-                                  );
-                                },
+                                builder: (context) => AchievementPage(
+                                  userValues: const {
+                                    'make_task': 25,
+                                    'block_friend': 1,
+                                  },
+                                  nickname: myUser!.nickname ?? '익명',
+                                  expRate: myUser!.expRate ?? 0.0,
+                                  myUser: myUser!,
+                                ),
                               ),
                             );
                           }
                         },
                       ),
-
                       _getDrawerIconRow(
                         FontAwesomeIcons.rightFromBracket,
                         "로그아웃",

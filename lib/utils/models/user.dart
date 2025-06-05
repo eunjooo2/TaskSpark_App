@@ -11,6 +11,10 @@ class User {
   String? name;
   String? nickname;
   String? avatar;
+  int? level;
+  double? expRate; // 경험치 비율
+  double? expMultiplier; // 경험치 부스터
+  int maxExp;
   num? exp;
   int? tag;
   Map<String, dynamic>? inventory;
@@ -29,9 +33,13 @@ class User {
     this.avatar,
     this.exp,
     this.tag,
+    this.level,
     this.inventory,
     this.created,
     this.updated,
+    this.expRate,
+    this.expMultiplier,
+    this.maxExp = 50000,
   });
 
   @override
@@ -41,7 +49,8 @@ class User {
       "collectionName": collectionName,
       "id": id,
       "nickname": nickname,
-      "tag":tag,
+      "tag": tag,
+      "level": level,
       "email": email,
       "emailVisibility": emailVisibility,
       "verified": verified,
@@ -67,9 +76,26 @@ class User {
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
       tag: record.data["tag"] as int?,
+      level: record.data["level"] as int?, //
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
+      expRate: (record.data["expRate"] as num?)?.toDouble(),
+      expMultiplier: (record.data["expMultiplier"] as num?)?.toDouble(),
+      maxExp: record.data["maxExp"] ?? 50000,
     );
   }
+}
+
+// 경험치 비율
+extension UserExpExtensions on User {
+  // 최대 경험치 = 현재 레벨(level) × 1000
+  int get calculatedMaxExp => (level ?? 1) * 1000;
+
+  // 경험치 비율 (0.0 ~ 1.0)
+  double get calculatedExpRate => (exp ?? 0) / calculatedMaxExp;
+
+  // "현재 / 최대" 형식
+  String get expProgressText =>
+      "${(exp ?? 0).toInt()} / ${calculatedMaxExp.toInt()}";
 }
