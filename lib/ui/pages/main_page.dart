@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/friend_search.dart';
 import 'package:task_spark/ui/pages/social_page.dart';
 import 'package:task_spark/ui/pages/task_page.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
-import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/ui/pages/shop_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -21,7 +19,6 @@ class _MainPageState extends State<MainPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _nicknameController = TextEditingController();
   final _tagController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   final List<String> _navigationTitles = ["Tasks", "Social", "Shop"];
   int _selectedIndex = 0;
@@ -41,95 +38,6 @@ class _MainPageState extends State<MainPage> {
       _appBarTitle = _navigationTitles[index];
     });
     _pageController.jumpToPage(index);
-  }
-
-  void _showAddFriendDialog() {
-    SmartDialog.show(builder: (context) {
-      return Container(
-        width: 70.w,
-        height: 30.h,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "친구 추가하기",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white.withAlpha(180),
-                ),
-              ),
-            ),
-            Form(
-              key: _formKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _nicknameController,
-                      decoration: const InputDecoration(labelText: "닉네임"),
-                      onChanged: (value) {
-                        final msg = validateNickname(value);
-                        if (msg != null) {
-                          SmartDialog.showNotify(
-                            msg: msg,
-                            notifyType: NotifyType.warning,
-                            alignment: Alignment.topCenter,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 2.w),
-                  Expanded(
-                    flex: 1,
-                    child: TextFormField(
-                      controller: _tagController,
-                      decoration: const InputDecoration(labelText: "태그"),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        final msg = validateTag(value);
-                        if (msg != null) {
-                          SmartDialog.showNotify(
-                            msg: msg,
-                            notifyType: NotifyType.warning,
-                            alignment: Alignment.topCenter,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: SmartDialog.dismiss,
-                  child: Text("닫기",
-                      style: TextStyle(color: Colors.white.withAlpha(130))),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // TODO: 친구 요청 API 호출 예정
-                  },
-                  child: const Text("친구 요청"),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
   }
 
   @override
@@ -152,11 +60,23 @@ class _MainPageState extends State<MainPage> {
         ),
         actions: [
           if (_selectedIndex == 1)
-            IconButton(
-              icon:
-                  const FaIcon(FontAwesomeIcons.plus, color: Color(0xFF3B3B3B)),
-              onPressed: _showAddFriendDialog,
-            ),
+            Padding(
+              padding: EdgeInsets.only(right: 5.w),
+              child: IconButton(
+                icon: FaIcon(
+                  FontAwesomeIcons.search,
+                  color: Color.fromARGB(255, 59, 59, 59),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FriendSearchPage(),
+                    ),
+                  );
+                },
+              ),
+            )
         ],
       ),
       body: PageView(

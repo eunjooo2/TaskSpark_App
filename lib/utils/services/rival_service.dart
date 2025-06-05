@@ -1,9 +1,8 @@
-import 'package:task_spark/utils/models/friend.dart';
+import 'package:task_spark/data/friend.dart';
 import 'package:task_spark/utils/pocket_base.dart';
-import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
-
-import '../models/rival.dart';
+import 'package:task_spark/data/rival.dart';
 
 class RivalService {
   Future<RivalRequest> sendRivalRequest(

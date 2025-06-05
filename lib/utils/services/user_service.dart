@@ -1,9 +1,9 @@
-import '../models/user.dart';
+import 'package:task_spark/data/user.dart';
 import '../pocket_base.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../secure_storage.dart';
-import '../models/friend.dart';
+import 'package:task_spark/util/secure_storage.dart';
+import 'package:task_spark/data/friend.dart';
 
 class UserService {
   Future<RecordAuth> sendLoginRequest(String provider) async {
