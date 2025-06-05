@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
 import 'package:task_spark/ui/widgets/rival_expanision.dart';
 import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/rival.dart';
+import 'package:task_spark/utils/models/user.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 import 'package:task_spark/main.dart';
 import 'package:task_spark/utils/services/rival_service.dart';
+import 'package:task_spark/utils/services/user_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -26,7 +29,11 @@ class _SocialPageState extends State<SocialPage>
   late List<RivalRequest> sentRivalRequest = [];
   bool isFriendLoading = true;
   bool isRivalLoading = true;
+  bool isUserLoading = true;
   bool isMatched = false;
+  RivalRequest? rivalInfo;
+  User? enemy;
+  int dayDiff = 0;
 
   @override
   void didChangeDependencies() {
@@ -89,6 +96,19 @@ class _SocialPageState extends State<SocialPage>
     setState(() {
       isMatched = matchResult;
     });
+    if (isMatched == true) {
+      final rival = await RivalService().loadMatchedRivalInfo();
+      final friendRequestInfo =
+          await FriendService().getFriendByRecordID(rival.friendID);
+      final enemyUserID = await UserService().getOtherUserID(friendRequestInfo);
+      final userInfo = await UserService().getUserByID(enemyUserID);
+      setState(() {
+        rivalInfo = rival;
+        enemy = userInfo;
+        isUserLoading = false;
+        dayDiff = rival.end.difference(rival.start).inDays;
+      });
+    }
   }
 
   @override
@@ -153,11 +173,105 @@ class _SocialPageState extends State<SocialPage>
           isRivalLoading
               ? const Center(child: CircularProgressIndicator())
               : (isMatched
-                  ? const Center(
-                      child: Text(
-                        "매칭 성공",
-                      ),
-                    )
+                  ? (isUserLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SizedBox.expand(
+                          child: Column(
+                            children: [
+                              Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 40,
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        backgroundImage: enemy!.avatar !=
+                                                    null &&
+                                                enemy!.avatar!.isNotEmpty
+                                            ? NetworkImage(
+                                                    "https://pb.aroxu.me/${enemy!.avatar}")
+                                                as ImageProvider
+                                            : const AssetImage(
+                                                "assets/images/default_profile.png"),
+                                      ),
+                                      SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "${enemy!.nickname}#${enemy!.tag.toString().padRight(4, '0')}",
+                                              style: TextStyle(
+                                                  fontSize: 18.sp,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              "경쟁 기간: ${DateFormat('MM월 dd일').format(rivalInfo!.start)} ~ ${DateFormat('MM월 dd일').format(rivalInfo!.end)} (${dayDiff}일)",
+                                              style: TextStyle(
+                                                  fontSize: 15.sp,
+                                                  color: Colors.white60),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              "레벨: ${UserService().convertExpToLevel(enemy!.exp ?? 0)}",
+                                              style: TextStyle(fontSize: 15.sp),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Divider(
+                                color: Theme.of(context).colorScheme.secondary,
+                                height: 4.h,
+                                thickness: 1.5,
+                              ),
+                              Expanded(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: dayDiff,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 1.h,
+                                        horizontal: 3.w,
+                                      ),
+                                      child: Card(
+                                        color: index < 5
+                                            ? (index < 2
+                                                ? Colors.red[700]
+                                                : Colors.indigoAccent[700])
+                                            : null,
+                                        child: SizedBox(
+                                          width: 100.w,
+                                          height: 10.h,
+                                          child: Center(
+                                            child: Text(
+                                              "${index + 1}일차 할 일 목록 및 결과",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ))
                   : SingleChildScrollView(
                       child: Column(
                         children: [

@@ -43,6 +43,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
   List<User?> users = [];
   List<bool> rivalRequestExists = [];
   bool isLoading = false;
+  bool isMatched = false;
 
   DateTime nowDate = DateTime.now().toUtc();
 
@@ -54,6 +55,14 @@ class _FriendExpanisionState extends State<FriendExpanision> {
       rivalRequestExists = List<bool>.filled(widget.data.length, false);
       loadUsers();
     }
+    _fetchMatch();
+  }
+
+  Future<void> _fetchMatch() async {
+    bool isMatch = await RivalService().isMatchedRival();
+    setState(() {
+      isMatched = isMatch;
+    });
   }
 
   @override
@@ -85,22 +94,13 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     });
   }
 
-  Future<String> getOtherUserID(FriendRequest request) async {
-    String? myUserID = await SecureStorage().storage.read(key: "userID");
-    if (request.senderId == myUserID) {
-      return request.receiverId;
-    } else {
-      return request.senderId;
-    }
-  }
-
   Future<User> _fetchUser(int index) async {
     final data = widget.isReceived != null
         ? (widget.isReceived == true
             ? await UserService().getUserByID(widget.data[index].senderId)
             : await UserService().getUserByID(widget.data[index].receiverId))
-        : await UserService()
-            .getUserByID(await getOtherUserID(widget.data[index]));
+        : await UserService().getUserByID(
+            await UserService().getOtherUserID(widget.data[index]));
     return data;
   }
 
@@ -255,7 +255,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                 children: [
                                   Text("이름: ${user.name}"),
                                   Text("닉네임: ${user.nickname}"),
-                                  Text("레벨: ${50}"),
+                                  Text(
+                                      "레벨: ${UserService().convertExpToLevel(user.exp ?? 0)}"),
                                   Text(
                                       "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
                                 ],
@@ -264,7 +265,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                           ),
                           SizedBox(height: 2.h),
                         ]),
-                        btnOk: rivalRequestExists[index] == true
+                        btnOk: isMatched
                             ? ElevatedButton(
                                 onPressed: () {},
                                 style: const ButtonStyle(
@@ -273,13 +274,28 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                   ),
                                 ),
                                 child: const Text(
-                                  "이미 신청됨",
+                                  "라이벌 진행중",
                                   style: TextStyle(
                                     color: Colors.white,
                                   ),
                                 ),
                               )
-                            : null,
+                            : (rivalRequestExists[index] == true
+                                ? ElevatedButton(
+                                    onPressed: () {},
+                                    style: const ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        Colors.grey,
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "이미 신청됨",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : null),
                         btnOkText: "라이벌 신청",
                         btnOkOnPress: rivalRequestExists[index] == true
                             ? null
@@ -524,7 +540,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                   children: [
                                     Text("이름: ${user.name}"),
                                     Text("닉네임: ${user.nickname}"),
-                                    Text("레벨: ${50}"),
+                                    Text(
+                                        "레벨: ${UserService().convertExpToLevel(user.exp ?? 0)}"),
                                     Text(
                                         "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
                                   ],

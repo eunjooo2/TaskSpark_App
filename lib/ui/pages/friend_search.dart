@@ -269,7 +269,8 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text("닉네임: ${user.nickname}"),
-                                                  Text("레벨: ${50}"),
+                                                  Text(
+                                                      "레벨: ${UserService().convertExpToLevel(user.exp ?? 0)}"),
                                                   Text(
                                                       "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
                                                 ],

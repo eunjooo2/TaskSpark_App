@@ -4,10 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend.dart';
-import 'package:task_spark/utils/models/friend.dart';
 import 'package:task_spark/utils/models/rival.dart';
 import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 import 'package:task_spark/utils/services/rival_service.dart';
 import 'package:task_spark/utils/services/user_service.dart';
@@ -77,22 +75,13 @@ class _RivalExpanisionState extends State<RivalExpanision> {
     });
   }
 
-  Future<String> getOtherUserID(FriendRequest request) async {
-    String? myUserID = await SecureStorage().storage.read(key: "userID");
-    if (request.senderId == myUserID) {
-      return request.receiverId;
-    } else {
-      return request.senderId;
-    }
-  }
-
   Future<User> _fetchUser(int index) async {
     if (widget.isReceived == true) {
       return await UserService().getUserByID(widget.data[index].senderID);
     } else {
       final friend = await FriendService()
           .getFriendByRecordID(widget.data[index].friendID);
-      String userID = await getOtherUserID(friend);
+      String userID = await UserService().getOtherUserID(friend);
 
       return await UserService().getUserByID(userID);
     }
@@ -250,7 +239,8 @@ class _RivalExpanisionState extends State<RivalExpanision> {
                                 children: [
                                   Text("이름: ${user.name}"),
                                   Text("닉네임: ${user.nickname}"),
-                                  Text("레벨: ${50}"),
+                                  Text(
+                                      "레벨: ${UserService().convertExpToLevel(user.exp ?? 0)}"),
                                   Text(
                                       "생성일: ${DateFormat("yyyy년 MM월 dd일").format(user.created!)}"),
                                 ],

@@ -79,6 +79,21 @@ class RivalService {
     return result.length == 1;
   }
 
+  Future<RivalRequest> loadMatchedRivalInfo() async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    List<FriendRequest> friends = await FriendService().getFriendList();
+
+    final friendIds = friends.map((f) => f.id).toList();
+
+    final filter = friendIds.map((id) => 'friend.id="$id"').join('||');
+
+    final result = await PocketB().pocketBase.collection('rivals').getFullList(
+          filter: "($filter||sender.id='$userID')&&isAccepted=true",
+        );
+
+    return RivalRequest.fromRecord(result[0]);
+  }
+
   Future<void> acceptRivalRequest(String recordID) async {
     await PocketB()
         .pocketBase
