@@ -70,14 +70,15 @@ class _TaskPageState extends State<TaskPage> {
       int cmp;
       switch (_sortOption) {
         case SortOption.priority:
-          cmp = int.tryParse(a.priority ?? '3')!.compareTo(int.tryParse(b.priority ?? '3')!);
+          cmp = int.tryParse(a.priority ?? '3')!
+              .compareTo(int.tryParse(b.priority ?? '3')!);
           break;
         case SortOption.title:
           cmp = (a.title ?? '').compareTo(b.title ?? '');
           break;
         case SortOption.startDate:
-        default:
-          cmp = (a.startDate ?? DateTime(1900)).compareTo(b.startDate ?? DateTime(1900));
+          cmp = (a.startDate ?? DateTime(1900))
+              .compareTo(b.startDate ?? DateTime(1900));
           break;
       }
       return _ascending ? cmp : -cmp;
@@ -94,7 +95,8 @@ class _TaskPageState extends State<TaskPage> {
   Future<void> _handleToggleDone(Task task) async {
     try {
       if (task.isDone == true) return;
-      if (task.startDate != null && task.startDate!.isAfter(DateTime.now())) return;
+      if (task.startDate != null && task.startDate!.isAfter(DateTime.now()))
+        return;
       await _taskService.handleTaskCompletion(task);
       _showSnackBar("할 일 완료! 경험치가 지급되었습니다 🎉");
       await _fetchData();
@@ -110,8 +112,12 @@ class _TaskPageState extends State<TaskPage> {
         title: const Text("삭제 확인"),
         content: const Text("정말 삭제하시겠습니까?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("취소")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("삭제")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("취소")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("삭제")),
         ],
       ),
     );
@@ -164,51 +170,59 @@ class _TaskPageState extends State<TaskPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(2.w),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                DropdownButton<SortOption>(
-                  value: _sortOption,
-                  items: const [
-                    DropdownMenuItem(value: SortOption.startDate, child: Text("시간순")),
-                    DropdownMenuItem(value: SortOption.priority, child: Text("우선순위순")),
-                    DropdownMenuItem(value: SortOption.title, child: Text("이름순")),
-                  ],
-                  onChanged: (val) => setState(() => _sortOption = val!),
+                Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      DropdownButton<SortOption>(
+                        value: _sortOption,
+                        items: const [
+                          DropdownMenuItem(
+                              value: SortOption.startDate, child: Text("시간순")),
+                          DropdownMenuItem(
+                              value: SortOption.priority, child: Text("우선순위순")),
+                          DropdownMenuItem(
+                              value: SortOption.title, child: Text("이름순")),
+                        ],
+                        onChanged: (val) => setState(() => _sortOption = val!),
+                      ),
+                      IconButton(
+                        icon: Icon(_ascending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward),
+                        onPressed: () =>
+                            setState(() => _ascending = !_ascending),
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                  onPressed: () => setState(() => _ascending = !_ascending),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _fetchData,
+                    child: _filteredTasks.isEmpty
+                        ? Center(
+                            child: Text("등록된 할 일이 없습니다.",
+                                style: TextStyle(fontSize: 17.sp)))
+                        : ListView.separated(
+                            padding: EdgeInsets.all(4.w),
+                            itemCount: _filteredTasks.length,
+                            separatorBuilder: (_, __) => Divider(height: 2.h),
+                            itemBuilder: (context, idx) {
+                              final task = _filteredTasks[idx];
+                              return TaskCard(
+                                task: task,
+                                onChanged: (_) => _handleToggleDone(task),
+                                onEdit: () => _openTaskForm(task: task),
+                                onDelete: () => _handleDelete(task),
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchData,
-              child: _filteredTasks.isEmpty
-                  ? Center(child: Text("등록된 할 일이 없습니다.", style: TextStyle(fontSize: 17.sp)))
-                  : ListView.separated(
-                padding: EdgeInsets.all(4.w),
-                itemCount: _filteredTasks.length,
-                separatorBuilder: (_, __) => Divider(height: 2.h),
-                itemBuilder: (context, idx) {
-                  final task = _filteredTasks[idx];
-                  return TaskCard(
-                    task: task,
-                    onChanged: (_) => _handleToggleDone(task),
-                    onEdit: () => _openTaskForm(task: task),
-                    onDelete: () => _handleDelete(task),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openTaskForm(),
         child: const Icon(Icons.add),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
 import '../../data/category.dart';
 import '../../data/task.dart';
@@ -44,11 +43,14 @@ class _TaskFormState extends State<TaskForm> {
       _isRepeating = (t.repeatPeriod != null && t.repeatPeriod!.isNotEmpty);
       _repeatCtrl.text = t.repeatPeriod ?? '';
       _chosenCategory = widget.categories.firstWhere(
-            (c) => c.id == t.categoryId,
-        orElse: () => widget.categories.isNotEmpty ? widget.categories.first : Category(name: '기본'),
+        (c) => c.id == t.categoryId,
+        orElse: () => widget.categories.isNotEmpty
+            ? widget.categories.first
+            : Category(name: '기본'),
       );
     } else {
-      _chosenCategory = widget.categories.isNotEmpty ? widget.categories.first : null;
+      _chosenCategory =
+          widget.categories.isNotEmpty ? widget.categories.first : null;
     }
   }
 
@@ -70,7 +72,9 @@ class _TaskFormState extends State<TaskForm> {
       _showError("반복 주기를 입력해주세요.");
       return;
     }
-    if (_startDate != null && _endDate != null && _startDate!.isAfter(_endDate!)) {
+    if (_startDate != null &&
+        _endDate != null &&
+        _startDate!.isAfter(_endDate!)) {
       _showError("시작일은 종료일보다 앞서야 합니다.");
       return;
     }
@@ -95,7 +99,8 @@ class _TaskFormState extends State<TaskForm> {
   }
 
   Future<void> _pickDateTime({required bool isStart}) async {
-    final initialDate = isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
+    final initialDate =
+        isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
     final date = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -110,7 +115,8 @@ class _TaskFormState extends State<TaskForm> {
     );
     if (time == null) return;
 
-    final selectedDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selectedDateTime =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
     setState(() {
       if (isStart) {
         _startDate = selectedDateTime;
@@ -132,11 +138,18 @@ class _TaskFormState extends State<TaskForm> {
       content: SingleChildScrollView(
         child: Column(
           children: [
-            TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: "제목")),
-            TextField(controller: _descCtrl, decoration: const InputDecoration(labelText: "설명")),
+            TextField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(labelText: "제목")),
+            TextField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(labelText: "설명")),
             DropdownButtonFormField<Category>(
               value: _chosenCategory,
-              items: widget.categories.map((c) => DropdownMenuItem(value: c, child: Text(c.name ?? ''))).toList(),
+              items: widget.categories
+                  .map((c) =>
+                      DropdownMenuItem(value: c, child: Text(c.name ?? '')))
+                  .toList(),
               onChanged: (c) => setState(() => _chosenCategory = c),
               decoration: const InputDecoration(labelText: "카테고리"),
             ),
@@ -145,13 +158,17 @@ class _TaskFormState extends State<TaskForm> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => _pickDateTime(isStart: true),
-                    child: Text(_startDate != null ? "시작: ${_formatDateTime(_startDate!)}" : "시작일 선택"),
+                    child: Text(_startDate != null
+                        ? "시작: ${_formatDateTime(_startDate!)}"
+                        : "시작일 선택"),
                   ),
                 ),
                 Expanded(
                   child: TextButton(
                     onPressed: () => _pickDateTime(isStart: false),
-                    child: Text(_endDate != null ? "종료: ${_formatDateTime(_endDate!)}" : "종료일 선택"),
+                    child: Text(_endDate != null
+                        ? "종료: ${_formatDateTime(_endDate!)}"
+                        : "종료일 선택"),
                   ),
                 ),
               ],
@@ -178,13 +195,15 @@ class _TaskFormState extends State<TaskForm> {
             if (_isRepeating)
               TextField(
                 controller: _repeatCtrl,
-                decoration: const InputDecoration(labelText: "반복 주기 (예: 매주, 3일마다 등)"),
+                decoration:
+                    const InputDecoration(labelText: "반복 주기 (예: 매주, 3일마다 등)"),
               ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("취소")),
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: const Text("취소")),
         TextButton(onPressed: _submit, child: const Text("저장")),
       ],
     );

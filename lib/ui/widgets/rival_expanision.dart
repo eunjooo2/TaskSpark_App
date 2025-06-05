@@ -6,9 +6,9 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend.dart';
 import 'package:task_spark/data/rival.dart';
 import 'package:task_spark/data/user.dart';
-import 'package:task_spark/utils/services/friend_service.dart';
-import 'package:task_spark/utils/services/rival_service.dart';
-import 'package:task_spark/utils/services/user_service.dart';
+import 'package:task_spark/service/friend_service.dart';
+import 'package:task_spark/service/rival_service.dart';
+import 'package:task_spark/service/user_service.dart';
 
 class RivalExpanision extends StatefulWidget {
   const RivalExpanision({

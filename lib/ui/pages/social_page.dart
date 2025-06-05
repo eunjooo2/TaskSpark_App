@@ -7,10 +7,10 @@ import 'package:task_spark/data/friend.dart';
 import 'package:task_spark/data/rival.dart';
 import 'package:task_spark/data/user.dart';
 import 'package:task_spark/util/secure_storage.dart';
-import 'package:task_spark/utils/services/friend_service.dart';
+import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/main.dart';
-import 'package:task_spark/utils/services/rival_service.dart';
-import 'package:task_spark/utils/services/user_service.dart';
+import 'package:task_spark/service/rival_service.dart';
+import 'package:task_spark/service/user_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});

@@ -1,7 +1,7 @@
 import 'package:task_spark/data/friend.dart';
-import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/util/pocket_base.dart';
 import 'package:task_spark/util/secure_storage.dart';
-import 'package:task_spark/utils/services/friend_service.dart';
+import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/data/rival.dart';
 
 class RivalService {

@@ -4,8 +4,7 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/achievement_page.dart';
 import 'package:task_spark/data/user.dart';
 import 'package:task_spark/util/secure_storage.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:task_spark/utils/services/user_service.dart';
+import 'package:task_spark/service/user_service.dart';
 
 class TaskSparkDrawer extends StatefulWidget {
   const TaskSparkDrawer({super.key});
