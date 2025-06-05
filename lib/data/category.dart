@@ -47,9 +47,9 @@ class Category {
 
   @override
   String toString() => jsonEncode({
-    "id": id,
-    "name": name,
-    "emoji": emoji,
-    "color": color,
-  });
+        "id": id,
+        "name": name,
+        "emoji": emoji,
+        "color": color,
+      });
 }

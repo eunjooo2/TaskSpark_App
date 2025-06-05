@@ -89,8 +89,12 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
         title: const Text("삭제 확인"),
         content: const Text("정말 이 카테고리를 삭제하시겠습니까?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("취소")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("삭제")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("취소")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("삭제")),
         ],
       ),
     );
@@ -118,9 +122,16 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
       content: SingleChildScrollView(
         child: Column(
           children: [
-            TextField(controller: _emojiCtrl, decoration: const InputDecoration(labelText: "이모지 (예: 📚)")),
-            TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "카테고리 이름")),
-            TextField(controller: _colorCtrl, decoration: const InputDecoration(labelText: "색상 코드 (#RRGGBB)")),
+            TextField(
+                controller: _emojiCtrl,
+                decoration: const InputDecoration(labelText: "이모지 (예: 📚)")),
+            TextField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: "카테고리 이름")),
+            TextField(
+                controller: _colorCtrl,
+                decoration:
+                    const InputDecoration(labelText: "색상 코드 (#RRGGBB)")),
             if (_isEditMode)
               Padding(
                 padding: EdgeInsets.only(top: 2.h),
@@ -129,7 +140,8 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                   child: TextButton.icon(
                     onPressed: _delete,
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    label: const Text("삭제", style: TextStyle(color: Colors.red)),
+                    label:
+                        const Text("삭제", style: TextStyle(color: Colors.red)),
                   ),
                 ),
               ),
@@ -137,7 +149,8 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("취소")),
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: const Text("취소")),
         TextButton(onPressed: _submit, child: const Text("저장")),
       ],
     );
