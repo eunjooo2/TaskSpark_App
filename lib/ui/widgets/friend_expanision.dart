@@ -6,10 +6,9 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend.dart';
 import 'package:task_spark/data/friend.dart';
 import 'package:task_spark/data/user.dart';
-import 'package:task_spark/util/secure_storage.dart';
-import 'package:task_spark/utils/services/friend_service.dart';
-import 'package:task_spark/utils/services/rival_service.dart';
-import 'package:task_spark/utils/services/user_service.dart';
+import 'package:task_spark/service/friend_service.dart';
+import 'package:task_spark/service/rival_service.dart';
+import 'package:task_spark/service/user_service.dart';
 
 class FriendExpanision extends StatefulWidget {
   const FriendExpanision({
@@ -424,17 +423,14 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                                       lastDate: DateTime(2100),
                                                     ))!
                                                             .toUtc();
-                                                    if (picked != null) {
-                                                      setInnerState(() {
-                                                        tempStartDate =
-                                                            DateTime(
-                                                          picked.year,
-                                                          picked.month,
-                                                          picked.day,
-                                                          0, // 시간을 4시로 설정
-                                                        );
-                                                      });
-                                                    }
+                                                    setInnerState(() {
+                                                      tempStartDate = DateTime(
+                                                        picked.year,
+                                                        picked.month,
+                                                        picked.day,
+                                                        0, // 시간을 4시로 설정
+                                                      );
+                                                    });
                                                   },
                                                   child: Text("시작 날짜 선택"),
                                                 ),
@@ -459,16 +455,14 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                                       lastDate: DateTime(2100),
                                                     ))!
                                                             .toUtc();
-                                                    if (picked != null) {
-                                                      setInnerState(() {
-                                                        tempEndDate = DateTime(
-                                                          picked.year,
-                                                          picked.month,
-                                                          picked.day,
-                                                          4, // 시간을 4시로 설정
-                                                        );
-                                                      });
-                                                    }
+                                                    setInnerState(() {
+                                                      tempEndDate = DateTime(
+                                                        picked.year,
+                                                        picked.month,
+                                                        picked.day,
+                                                        4, // 시간을 4시로 설정
+                                                      );
+                                                    });
                                                   },
                                                   child: Text("종료 날짜 선택"),
                                                 ),

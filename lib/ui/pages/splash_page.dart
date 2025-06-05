@@ -4,7 +4,7 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/main_page.dart';
 import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/ui/widgets/login_button.dart';
-import 'package:task_spark/utils/services/user_service.dart';
+import 'package:task_spark/service/user_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

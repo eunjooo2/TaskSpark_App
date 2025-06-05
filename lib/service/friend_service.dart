@@ -1,5 +1,5 @@
 import 'package:task_spark/data/friend.dart';
-import '../pocket_base.dart';
+import 'package:task_spark/util/pocket_base.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:task_spark/util/secure_storage.dart';
 
