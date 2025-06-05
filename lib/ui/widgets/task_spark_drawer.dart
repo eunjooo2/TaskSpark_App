@@ -14,7 +14,7 @@ class TaskSparkDrawer extends StatefulWidget {
 }
 
 class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
-  User? user;
+  User? myUser;
 
   @override
   void initState() {
@@ -26,7 +26,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
     final fetchedUser = await UserService().getUserByID(id);
     setState(() {
-      user = fetchedUser;
+      myUser = fetchedUser;
     });
   }
 
@@ -97,89 +97,88 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child:
-          user != null
-              ? ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  Theme(
-                    data: ThemeData(
-                      dividerColor: Colors.transparent,
-                      dividerTheme: const DividerThemeData(
-                        color: Colors.transparent,
+      child: user != null
+          ? ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                Theme(
+                  data: ThemeData(
+                    dividerColor: Colors.transparent,
+                    dividerTheme: const DividerThemeData(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                  child: UserAccountsDrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    accountName: Text(
+                      user!.name ?? "",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
-                    child: UserAccountsDrawerHeader(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
+                    accountEmail: Text(
+                      user!.email ?? "",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
-                      accountName: Text(
-                        user!.name ?? "",
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
-                      accountEmail: Text(
-                        user!.email ?? "",
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
-                      currentAccountPicture: CircleAvatar(
-                        backgroundImage:
-                            user!.avatar != null && user!.avatar!.isNotEmpty
-                                ? NetworkImage(
+                    ),
+                    currentAccountPicture: CircleAvatar(
+                      backgroundImage:
+                          user!.avatar != null && user!.avatar!.isNotEmpty
+                              ? NetworkImage(
                                   "https://pb.aroxu.me/${user!.avatar}",
                                 )
-                                : const AssetImage(
+                              : const AssetImage(
                                   "assets/images/default_profile.png",
                                 ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 1.5.h),
+                  child: Column(
+                    children: [
+                      _buildDividerWithText("계정", context),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.pencil,
+                        "프로필 편집",
+                        () {},
                       ),
-                    ),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.gifts,
+                        "인벤토리",
+                        () {},
+                      ),
+                      _getDrawerIconRow(FontAwesomeIcons.medal, "업적", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const ArchievePage();
+                            },
+                          ),
+                        );
+                      }),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.rightFromBracket,
+                        "로그아웃",
+                        () {},
+                      ),
+                      _buildDividerWithText("설정", context),
+                      _getDrawerIconRow(FontAwesomeIcons.gear, "앱 설정", () {}),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.userLock,
+                        "차단 친구 설정",
+                        () {},
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 1.5.h),
-                    child: Column(
-                      children: [
-                        _buildDividerWithText("계정", context),
-                        _getDrawerIconRow(
-                          FontAwesomeIcons.pencil,
-                          "프로필 편집",
-                          () {},
-                        ),
-                        _getDrawerIconRow(
-                          FontAwesomeIcons.gifts,
-                          "인벤토리",
-                          () {},
-                        ),
-                        _getDrawerIconRow(FontAwesomeIcons.medal, "업적", () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ArchievePage();
-                              },
-                            ),
-                          );
-                        }),
-                        _getDrawerIconRow(
-                          FontAwesomeIcons.rightFromBracket,
-                          "로그아웃",
-                          () {},
-                        ),
-                        _buildDividerWithText("설정", context),
-                        _getDrawerIconRow(FontAwesomeIcons.gear, "앱 설정", () {}),
-                        _getDrawerIconRow(
-                          FontAwesomeIcons.userLock,
-                          "차단 친구 설정",
-                          () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-              : const Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 }
