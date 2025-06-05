@@ -241,7 +241,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
                                       body: Column(
                                         children: [
                                           Text(
-                                            "${user.nickname}#${user.tag}님의 정보",
+                                            "${user.nickname}#${user.tag.toString().padRight(4, '0')}님의 정보",
                                             style: TextStyle(
                                               color: Theme.of(context)
                                                   .colorScheme

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/utils/models/user.dart';
 
@@ -8,6 +9,9 @@ class FriendCard extends StatefulWidget {
   final bool isSearch;
   final Widget? actionButtons;
   final VoidCallback? onTap;
+  final bool isRival;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   const FriendCard({
     super.key,
@@ -16,6 +20,9 @@ class FriendCard extends StatefulWidget {
     this.isSearch = false,
     this.actionButtons,
     this.onTap,
+    this.isRival = false,
+    this.startDate,
+    this.endDate,
   });
 
   @override
@@ -55,11 +62,24 @@ class _FriendCardState extends State<FriendCard> {
                   ),
                   SizedBox(width: 4.w),
                   Expanded(
-                    child: Text(
-                      "${user.nickname}#${user.tag}",
-                      style: TextStyle(
-                          fontSize: 16.sp, fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          "${user.nickname}#${user.tag.toString().padRight(4, '0')}",
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (widget.isRival)
+                          Text(
+                            "${DateFormat('yyyy년 MM월 dd일').format(widget.startDate!)} ~ ${DateFormat('yyyy년 MM월 dd일').format(widget.endDate!)}",
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                            ),
+                          ),
+                        if (widget.isRival) SizedBox(height: 1.h),
+                      ],
                     ),
                   ),
                   if (widget.actionButtons != null) widget.actionButtons!,

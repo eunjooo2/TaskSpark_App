@@ -13,14 +13,14 @@ import 'package:task_spark/utils/services/user_service.dart';
 
 class FriendExpanision extends StatefulWidget {
   const FriendExpanision({
-    Key? key,
+    super.key,
     required this.title,
     required this.expanisionType,
     required this.data,
     required this.isReceived,
     this.onDataChanged,
     this.onTap,
-  }) : super(key: key);
+  });
 
   final String title;
   final String expanisionType;
@@ -44,11 +44,14 @@ class _FriendExpanisionState extends State<FriendExpanision> {
   List<bool> rivalRequestExists = [];
   bool isLoading = false;
 
+  DateTime nowDate = DateTime.now().toUtc();
+
   @override
   void initState() {
     super.initState();
     if (widget.data.isNotEmpty) {
       users = List<User?>.filled(widget.data.length, null);
+      rivalRequestExists = List<bool>.filled(widget.data.length, false);
       loadUsers();
     }
   }
@@ -72,7 +75,6 @@ class _FriendExpanisionState extends State<FriendExpanision> {
     List<bool> loadedRequests = List<bool>.filled(widget.data.length, false);
     for (int i = 0; i < widget.data.length; i++) {
       loadedUsers[i] = await _fetchUser(i);
-
       loadedRequests[i] = await RivalService().isSendRequest(widget.data[i]);
     }
 
@@ -150,6 +152,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime startDate = DateTime(nowDate.year, nowDate.month, nowDate.day, 0);
+    DateTime endDate = DateTime(nowDate.year, nowDate.month, nowDate.day, 4);
     return ExpansionTile(
       shape: const Border(),
       showTrailingIcon: false,
@@ -198,8 +202,6 @@ class _FriendExpanisionState extends State<FriendExpanision> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.data.length,
             itemBuilder: (context, index) {
-              DateTime? startDate = DateTime.now();
-              DateTime? endDate = DateTime.now();
               final user = users[index];
               if (user == null) {
                 return Padding(
@@ -229,7 +231,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                         dialogType: DialogType.noHeader,
                         body: Column(children: [
                           Text(
-                            "${user.nickname}#${user.tag}님의 정보",
+                            "${user.nickname}#${user.tag.toString().padRight(4, '0')}님의 정보",
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontSize: 17.sp,
@@ -284,6 +286,10 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                             : () async {
                                 DateTime tempStartDate = startDate;
                                 DateTime tempEndDate = endDate;
+                                tempStartDate =
+                                    tempStartDate.add(Duration(days: 1));
+                                tempEndDate =
+                                    tempEndDate.add(Duration(days: 15));
                                 AwesomeDialog(
                                   context: context,
                                   dialogType: DialogType.noHeader,
@@ -293,7 +299,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                     pressEvent: () async {
                                       if (tempEndDate
                                               .difference(tempStartDate) <
-                                          Duration(days: 13)) {
+                                          Duration(days: 14)) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
@@ -323,6 +329,10 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                       }
 
                                       try {
+                                        tempStartDate = tempStartDate
+                                            .add(Duration(hours: 9));
+                                        tempEndDate =
+                                            tempEndDate.add(Duration(hours: 9));
                                         await RivalService().sendRivalRequest(
                                             tempStartDate,
                                             tempEndDate,
@@ -340,7 +350,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
 
                                         loadUsers();
                                         Navigator.of(context).pop();
-                                      } catch (e) {
+                                      } catch (e, s) {
+                                        print(s);
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
@@ -368,7 +379,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                     builder: (context, setInnerState) {
                                       return SizedBox(
                                         width: 80.w,
-                                        height: 25.h,
+                                        height: 20.h,
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
@@ -382,29 +393,36 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(height: 5.h),
+                                            SizedBox(height: 2.h),
                                             Row(
                                               children: [
                                                 SizedBox(width: 5.w),
                                                 ElevatedButton(
                                                   onPressed: () async {
                                                     final picked =
-                                                        await showDatePicker(
+                                                        (await showDatePicker(
                                                       context: context,
                                                       initialDate:
                                                           tempStartDate,
                                                       firstDate: DateTime(2000),
                                                       lastDate: DateTime(2100),
-                                                    );
+                                                    ))!
+                                                            .toUtc();
                                                     if (picked != null) {
                                                       setInnerState(() {
-                                                        tempStartDate = picked;
+                                                        tempStartDate =
+                                                            DateTime(
+                                                          picked.year,
+                                                          picked.month,
+                                                          picked.day,
+                                                          0, // 시간을 4시로 설정
+                                                        );
                                                       });
                                                     }
                                                   },
                                                   child: Text("시작 날짜 선택"),
                                                 ),
-                                                SizedBox(width: 3.w),
+                                                SizedBox(width: 2.w),
                                                 Text(
                                                   DateFormat("yyyy년 MM월 dd일")
                                                       .format(tempStartDate),
@@ -418,12 +436,13 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                                                 ElevatedButton(
                                                   onPressed: () async {
                                                     final picked =
-                                                        await showDatePicker(
+                                                        (await showDatePicker(
                                                       context: context,
                                                       initialDate: tempEndDate,
                                                       firstDate: DateTime(2000),
                                                       lastDate: DateTime(2100),
-                                                    );
+                                                    ))!
+                                                            .toUtc();
                                                     if (picked != null) {
                                                       setInnerState(() {
                                                         tempEndDate = DateTime(
@@ -481,7 +500,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                         body: Column(
                           children: [
                             Text(
-                              "${user.nickname}#${user.tag}님의 정보",
+                              "${user.nickname}#${user.tag.toString().padRight(4, '0')}님의 정보",
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontSize: 17.sp,

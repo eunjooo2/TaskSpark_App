@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
+import 'package:task_spark/ui/widgets/rival_expanision.dart';
 import 'package:task_spark/utils/models/friend.dart';
+import 'package:task_spark/utils/models/rival.dart';
 import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 import 'package:task_spark/main.dart';
+import 'package:task_spark/utils/services/rival_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -19,6 +22,8 @@ class _SocialPageState extends State<SocialPage>
   late List<FriendRequest> receiveFriendRequest = [];
   late List<FriendRequest> sentFriendRequest = [];
   late List<FriendRequest> acceptedFriends = [];
+  late List<RivalRequest> receiveRivalRequest = [];
+  late List<RivalRequest> sentRivalRequest = [];
   bool isFriendLoading = true;
   bool isRivalLoading = true;
 
@@ -40,6 +45,7 @@ class _SocialPageState extends State<SocialPage>
   @override
   void didPopNext() {
     getFriend();
+    getRival();
   }
 
   Future<void> getFriend() async {
@@ -66,12 +72,21 @@ class _SocialPageState extends State<SocialPage>
     });
   }
 
-  Future<void> getRival() async {}
+  Future<void> getRival() async {
+    final sentRivalRequests = await RivalService().loadSendRivalRequest();
+    final receiveRivalRequests = await RivalService().loadReceiveRivalRequest();
+    setState(() {
+      sentRivalRequest = sentRivalRequests;
+      receiveRivalRequest = receiveRivalRequests;
+      isRivalLoading = false;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     getFriend();
+    getRival();
     tabController = TabController(
       length: 2,
       vsync: this,
@@ -125,9 +140,29 @@ class _SocialPageState extends State<SocialPage>
                     ],
                   ),
                 ),
-          const Center(
-            child: Text("라이벌 페이지입니다"),
-          ),
+          isRivalLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 2.h),
+                      RivalExpanision(
+                        title: "요청 받은 라이벌 목록",
+                        expanisionType: "received",
+                        data: receiveRivalRequest,
+                        isReceived: true,
+                        onDataChanged: getRival,
+                      ),
+                      RivalExpanision(
+                        title: "전송한 라이벌 요청 목록",
+                        expanisionType: "transmited",
+                        data: sentRivalRequest,
+                        isReceived: false,
+                        onDataChanged: getRival,
+                      ),
+                    ],
+                  ),
+                ),
         ],
       ),
     );

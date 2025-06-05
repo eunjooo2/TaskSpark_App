@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:task_spark/utils/models/friend.dart';
-import 'package:task_spark/utils/models/user.dart';
 
 enum RivalRequestStatus { pending, draw, sender, receiver }
 
@@ -17,50 +15,63 @@ extension RivalRequestStatusExtension on RivalRequestStatus {
 }
 
 class RivalRequest {
-  String? id;
-  DateTime? start;
-  DateTime? end;
-  FriendRequest? friend;
-  bool? isAccepted;
-  SearchUser? sender;
-  RivalRequestStatus? result;
+  String id;
+  DateTime start;
+  DateTime end;
+  String friendID;
+  bool isAccepted;
+  String senderID;
+  RivalRequestStatus result;
   DateTime? created;
 
   @override
   String toString() {
     return jsonEncode({
       "id": id,
-      "start": start?.toIso8601String(),
-      "end": end?.toIso8601String(),
-      "friend": friend.toString(),
+      "start": start.toIso8601String(),
+      "end": end.toIso8601String(),
+      "friendID": friendID,
       "isAccepted": isAccepted,
-      "sender": sender.toString(),
-      "result": result?.name,
+      "senderID": senderID,
+      "result": result.name,
       "created": created?.toIso8601String(),
     });
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "start": start.toIso8601String(),
+      "end": end.toIso8601String(),
+      "friendID": friendID,
+      "isAccepted": isAccepted,
+      "senderID": senderID,
+      "result": result.name,
+      "created": created?.toIso8601String(),
+    };
+  }
+
   RivalRequest({
     required this.id,
-    this.start,
-    this.end,
-    this.friend,
+    required this.start,
+    required this.end,
+    required this.friendID,
+    required this.senderID,
     this.isAccepted = false,
-    this.sender,
-    this.result,
+    this.result = RivalRequestStatus.pending,
     this.created,
   });
 
   factory RivalRequest.fromRecord(RecordModel record) {
     return RivalRequest(
       id: record.data["id"],
-      start: record.data["start"],
-      end: record.data["end"],
-      friend: record.data["friend"],
+      start: DateTime.parse(record.data["start"]),
+      end: DateTime.parse(record.data["end"]),
+      friendID: record.data["friend"],
       isAccepted: record.data["isAccepted"],
-      sender: record.data["sender"],
-      result: record.data["result"],
-      created: record.data["created"],
+      senderID: record.data["sender"],
+      result: RivalRequestStatusExtension.fromString(record.data["result"]),
+      created: DateTime.parse(record.data["created"]),
     );
   }
 }
