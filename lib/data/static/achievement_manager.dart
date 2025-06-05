@@ -1,6 +1,13 @@
+<<<<<<< HEAD:lib/data/achievement_manager.dart
 /// 업적 달성 여부 판단 및 상태 갱신 로직 + 보상 지급 유틸리티 포함
 import 'package:task_spark/utils/models/achievement.dart';
 import 'package:task_spark/utils/models/user.dart';
+=======
+import '../achievement.dart';
+import 'achievement_data.dart';
+
+// 해금된 업적 저장
+>>>>>>> 0e032971c4ae4e4b4a116a2e9948d3fc64bc09de:lib/data/static/achievement_manager.dart
 
 class AchievementManager {
   // 업적 제목 기준으로 해금 여부 저장

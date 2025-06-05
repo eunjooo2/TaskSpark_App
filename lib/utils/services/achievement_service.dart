@@ -45,7 +45,7 @@ class AchievementService {
   }) async {
     final pb = PocketB().pocketBase;
 
-    // 기존 문서 존재 여부 확인
+    // 기존 문서 존재 여부 확인 dd
     final existing = await pb
         .collection('user_achievement')
         .getFirstListItem(

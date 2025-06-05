@@ -1,89 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:task_spark/utils/models/task_model.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+
+import '../../data/task.dart';
 
 class TaskCard extends StatelessWidget {
-  final TaskModel task;
+  final Task task;
+  final ValueChanged<bool?> onChanged;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onToggleExpand;
 
   const TaskCard({
     super.key,
     required this.task,
+    required this.onChanged,
+    required this.onEdit,
     required this.onDelete,
-    required this.onToggleExpand,
   });
+
+  String formatDateTime(DateTime? dt) {
+    if (dt == null) return '';
+    return "${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
+        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final isFutureTask = task.startDate != null && task.startDate!.isAfter(now);
+    final start = formatDateTime(task.startDate);
+    final end = formatDateTime(task.endDate);
+
+    final textColor = isFutureTask ? Colors.grey : null;
+
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onToggleExpand,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.all(12),
-          constraints: const BoxConstraints(minHeight: 60),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(task.title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis),
-              if (task.isExpanded)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(task.description,
-                          maxLines: 3, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 4),
-                      Text(
-                        "기간: ${DateFormat.yMd().format(task.startDate)} ~ ${DateFormat.yMd().format(task.endDate)}",
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      Wrap(
-                        spacing: 6,
-                        children: task.tags
-                            .map((tag) => Chip(label: Text(tag)))
-                            .toList(),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  title: const Text('삭제 확인'),
-                                  content: const Text('정말 삭제하시겠습니까?'),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text('취소')),
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text('삭제')),
-                                  ],
-                                ),
-                              );
-                              if (confirm == true) onDelete();
-                            },
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                )
-            ],
+      margin: EdgeInsets.symmetric(vertical: 1.h, horizontal: 3.w),
+      child: ListTile(
+        leading: Checkbox(
+          value: task.isDone ?? false,
+          onChanged: isFutureTask ? null : (val) => onChanged(val),
+        ),
+        title: Text(
+          task.title ?? '',
+          style: TextStyle(
+            fontSize: 17.sp,
+            decoration:
+                (task.isDone ?? false) ? TextDecoration.lineThrough : null,
+            color: textColor,
           ),
+        ),
+        subtitle: Text(
+          '시작: $start\n종료: $end',
+          style: TextStyle(fontSize: 13.sp, color: textColor),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        isThreeLine: true,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+            IconButton(icon: const Icon(Icons.delete), onPressed: onDelete),
+          ],
         ),
       ),
     );

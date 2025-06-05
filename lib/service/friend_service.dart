@@ -1,0 +1,116 @@
+import 'package:task_spark/data/friend.dart';
+import 'package:task_spark/util/pocket_base.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:task_spark/util/secure_storage.dart';
+
+class FriendService {
+  Future<List<RecordModel>> _getFriendRecordList() async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    return await PocketB()
+        .pocketBase
+        .collection("friends")
+        .getFullList(filter: "sender.id='$userID'||receiver.id='$userID'");
+  }
+
+  Future<List<FriendRequest>> getFriendList() async {
+    final friendRecordList = await _getFriendRecordList();
+    final friendRequests = friendRecordList
+        .map((json) => FriendRequest.fromRecordModel(json))
+        .toList();
+
+    return friendRequests;
+  }
+
+  Future<FriendRequest> getFriendByRecordID(String recordID) async {
+    return FriendRequest.fromRecordModel(
+        await PocketB().pocketBase.collection('friends').getOne(recordID));
+  }
+
+  Future<RecordModel> sendFriendRequest(String targetUserId) async {
+    final userID = await SecureStorage().storage.read(key: "userID");
+    final body = <String, dynamic>{
+      "sender": userID,
+      "receiver": targetUserId,
+      "isAccepted": false,
+      "isBlocked": false,
+    };
+
+    return await PocketB().pocketBase.collection('friends').create(body: body);
+  }
+
+  Future<void> rejectFriendRequest(String recordID) async {
+    await PocketB().pocketBase.collection('friends').delete(recordID);
+  }
+
+  Future<void> acceptFriendRequest(String recordID) async {
+    FriendRequest originFriendRequest = FriendRequest.fromRecordModel(
+        await PocketB().pocketBase.collection('friends').getOne(recordID));
+
+    await PocketB().pocketBase.collection('friends').update(recordID, body: {
+      "sender": originFriendRequest.senderId,
+      "receiver": originFriendRequest.receiverId,
+      "isAccepted": true,
+    });
+  }
+
+  Future<bool> checkIsFriend(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||(sender.id='$targetUserId'&&receiver.id='$userID'))&&isAccepted=true");
+
+    return friends.length == 1;
+  }
+
+  Future<bool> alreadyRequestFriend(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "sender.id='$userID'&&receiver.id='$targetUserId'&&isAccepted=false");
+
+    return friends.length == 1;
+  }
+
+  Future<bool> isRequestFromTargetToMe(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    final friends = await PocketB().pocketBase.collection("friends").getFullList(
+        filter:
+            "sender.id='$targetUserId'&&receiver.id='$userID'&&isAccepted=false");
+
+    return friends.length == 1;
+  }
+
+  Future<RecordModel> getRequestByTargetID(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||sender.id='$targetUserId'&&receiver.id='$userID')&&isAccepted=false");
+
+    return friends[0];
+  }
+
+  Future<RecordModel> getFriendByTargetID(String targetUserId) async {
+    String userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    final friends = await PocketB().pocketBase.collection('friends').getFullList(
+        filter:
+            "((sender.id='$userID'&&receiver.id='$targetUserId')||sender.id='$targetUserId'&&receiver.id='$userID')");
+
+    return friends[0];
+  }
+
+  Future<void> blockFriend(String targetUserId) async {
+    late RecordModel record;
+    try {
+      record = await getFriendByTargetID(targetUserId);
+    } catch (e) {
+      record = await sendFriendRequest(targetUserId);
+    }
+    record.data["isBlocked"] = true;
+    await PocketB()
+        .pocketBase
+        .collection('friends')
+        .update(record.id, body: record.data);
+  }
+}
