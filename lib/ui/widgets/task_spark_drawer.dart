@@ -14,7 +14,8 @@ class TaskSparkDrawer extends StatefulWidget {
 }
 
 class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
-  User? myUser;
+  late User user;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -26,7 +27,8 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
     final fetchedUser = await UserService().getUserByID(id);
     setState(() {
-      myUser = fetchedUser;
+      user = fetchedUser;
+      isLoading = false;
     });
   }
 
@@ -97,7 +99,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: user != null
+      child: isLoading == false
           ? ListView(
               padding: EdgeInsets.zero,
               children: [
@@ -156,7 +158,16 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return const ArchievePage();
+                              return AchievementPage(
+                                //임시(추후 수정)
+                                userValues: {
+                                  'make_task': 25,
+                                  'block_friend': 1,
+                                },
+                                nickname: user!.nickname ?? '익명',
+                                expRate: 0.0,
+                                myUser: user,
+                              );
                             },
                           ),
                         );

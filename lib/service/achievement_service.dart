@@ -1,5 +1,5 @@
-import 'package:task_spark/utils/models/achievement.dart';
-import 'package:task_spark/utils/pocket_base.dart';
+import 'package:task_spark/data/achievement.dart';
+import 'package:task_spark/util/pocket_base.dart';
 
 class AchievementService {
   Future<List<Achievement>> getAchievementList() async {

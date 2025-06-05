@@ -1,10 +1,10 @@
 // AchievementPage: 업적 리스트를 표시하는 화면
 import 'package:flutter/material.dart';
 import 'package:task_spark/data/achievement_manager.dart';
-import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/pocket_base.dart';
-import 'package:task_spark/utils/models/achievement.dart';
-import 'package:task_spark/utils/services/achievement_service.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/util/pocket_base.dart';
+import 'package:task_spark/data/achievement.dart';
+import 'package:task_spark/service/achievement_service.dart';
 
 class AchievementPage extends StatefulWidget {
   final Map<String, int> userValues; // 업적 진행 정보
@@ -205,10 +205,6 @@ class _AchievementPageState extends State<AchievementPage> {
                     color: Color.fromARGB(255, 192, 230, 255),
                     shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    widget.myUser.level?.toString() ?? '1',
-                    style: const TextStyle(color: Colors.black, fontSize: 12),
-                  ),
                 ),
               ),
             ],
@@ -232,21 +228,6 @@ class _AchievementPageState extends State<AchievementPage> {
                     const Icon(Icons.local_fire_department,
                         color: Colors.orange, size: 18),
                     const SizedBox(width: 4),
-                    Text(
-                      widget.myUser.expMultiplier != null
-                          ? '${widget.myUser.expMultiplier}x'
-                          : 'x1',
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    const Spacer(),
-                    Text(
-                      widget.myUser.expProgressText,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
