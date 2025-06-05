@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/data/achievement_data.dart';
+
+import '../../data/static/achievement_data.dart';
 
 class ArchievePage extends StatefulWidget {
   const ArchievePage({super.key});

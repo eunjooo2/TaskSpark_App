@@ -1,8 +1,8 @@
-import 'package:task_spark/utils/models/achievement.dart';
-
 // [ 업적 리스트 페이지 ]
 // 브 5 실 15 골 30 플 50 다 80
 // 업적은 추후후 다시 검토 (임시)
+
+import '../achievement.dart';
 
 final List<Achievement> achievements = [
 // 브론즈 ~

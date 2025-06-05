@@ -1,8 +1,17 @@
+// 📁 ui/pages/task_page.dart
 import 'package:flutter/material.dart';
-import '../../utils/models/task_model.dart';
-import '../../utils/services/task_service.dart';
-import '../widgets/task_add_dialog.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:pocketbase/pocketbase.dart';
+
+import '../../data/category.dart';
+import '../../data/task.dart';
+import '../../service/task_service.dart';
+import '../../service/category_service.dart';
+import '../../service/user_service.dart';
+import '../../util/pocket_base.dart';
+import '../widgets/category_tabbar.dart';
 import '../widgets/task_card.dart';
+import '../widgets/task_form.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -11,192 +20,198 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
+enum SortOption { startDate, priority, title }
+
 class _TaskPageState extends State<TaskPage> {
-  final TaskService _taskService = TaskService();
-  List<String> _categories = ['전체', '개인', '업무', '기본'];
-  String _selectedCategory = '전체';
-  String _searchKeyword = '';
-  int _page = 0;
-  final int _pageSize = 20;
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoading = false;
-  String _sortType = '최신순';
+  final PocketBase pb = PocketB().pocketBase;
+  late final TaskService _taskService;
+  late final CategoryService _categoryService;
+  late final UserService _userService;
+
+  List<Task> _tasks = [];
+  List<Category> _categories = [];
+  String? _selectedCategoryId;
+  bool _isLoading = true;
+  SortOption _sortOption = SortOption.startDate;
+  bool _ascending = true;
 
   @override
   void initState() {
     super.initState();
-    _initializeDemoTasks();
-    _scrollController.addListener(_onScroll);
+    _userService = UserService();
+    _taskService = TaskService(pb, _userService);
+    _categoryService = CategoryService(pb);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
   }
 
-  void _initializeDemoTasks() {
-    for (int i = 0; i < 30; i++) {
-      _taskService.addTask(TaskModel(
-        id: UniqueKey().toString(),
-        title: '할 일 ${i + 1}',
-        description: '설명 ${i + 1}',
-        category: i % 2 == 0 ? '개인' : '업무',
-        startDate: DateTime.now(),
-        endDate: DateTime.now().add(Duration(days: i % 5)),
-        tags: ['중요', '태그${i % 3}'],
-        isImportant: i % 2 == 0,
-        isCompleted: false,
-        priority: i % 3,
-      ));
-    }
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_isLoading) {
-      setState(() => _isLoading = true);
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _initializeDemoTasks();
-        setState(() => _isLoading = false);
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    try {
+      final categories = await _categoryService.getAllCategories();
+      final tasks = await _taskService.getAllTasks();
+      setState(() {
+        _categories = categories;
+        _tasks = tasks;
       });
+    } catch (_) {
+      _showSnackBar("데이터 불러오기 실패 😥");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  void _sortTasks(List<TaskModel> list) {
+  List<Task> get _filteredTasks {
+    List<Task> list = _tasks;
+    if (_selectedCategoryId != null) {
+      list = list.where((t) => t.categoryId == _selectedCategoryId).toList();
+    }
+
     list.sort((a, b) {
-      switch (_sortType) {
-        case '최신순':
-          return b.startDate.compareTo(a.startDate);
-        case '제목순':
-          return a.title.compareTo(b.title);
-        case '우선순위순':
-          return b.priority.compareTo(a.priority);
+      int cmp;
+      switch (_sortOption) {
+        case SortOption.priority:
+          cmp = int.tryParse(a.priority ?? '3')!.compareTo(int.tryParse(b.priority ?? '3')!);
+          break;
+        case SortOption.title:
+          cmp = (a.title ?? '').compareTo(b.title ?? '');
+          break;
+        case SortOption.startDate:
         default:
-          return 0;
+          cmp = (a.startDate ?? DateTime(1900)).compareTo(b.startDate ?? DateTime(1900));
+          break;
       }
+      return _ascending ? cmp : -cmp;
     });
+
+    return list;
+  }
+
+  void _showSnackBar(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> _handleToggleDone(Task task) async {
+    try {
+      if (task.isDone == true) return;
+      if (task.startDate != null && task.startDate!.isAfter(DateTime.now())) return;
+      await _taskService.handleTaskCompletion(task);
+      _showSnackBar("할 일 완료! 경험치가 지급되었습니다 🎉");
+      await _fetchData();
+    } catch (e) {
+      _showSnackBar("완료 처리 실패: $e");
+    }
+  }
+
+  Future<void> _handleDelete(Task task) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("삭제 확인"),
+        content: const Text("정말 삭제하시겠습니까?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("취소")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("삭제")),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _taskService.deleteTask(task.id!);
+        _showSnackBar("삭제되었습니다.");
+        await _fetchData();
+      } catch (_) {
+        _showSnackBar("삭제 실패");
+      }
+    }
+  }
+
+  Future<void> _openTaskForm({Task? task}) async {
+    await showDialog(
+      context: context,
+      builder: (_) => TaskForm(
+        task: task,
+        categories: _categories,
+        onSubmit: (submittedTask) async {
+          try {
+            if (task != null) {
+              await _taskService.updateTask(task.id!, submittedTask.toJson());
+              _showSnackBar("할 일 수정 완료!");
+            } else {
+              await _taskService.createTask(submittedTask);
+              _showSnackBar("새 할 일이 추가되었습니다!");
+            }
+            await _fetchData();
+          } catch (e) {
+            _showSnackBar("저장 실패: $e");
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _taskService.tasks.where((t) {
-      final matchCat = _selectedCategory == '전체' || t.category == _selectedCategory;
-      final matchKey = t.title.contains(_searchKeyword);
-      return matchCat && matchKey;
-    }).toList();
-
-    _sortTasks(filtered);
-
-    final visible = filtered.take((_page + 1) * _pageSize).toList();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("할 일 목록"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () async {
-              final keyword = await _showTextInputDialog("제목 검색", _searchKeyword);
-              if (keyword != null) setState(() => _searchKeyword = keyword);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: () async {
-              final sort = await _showSortDialog();
-              if (sort != null) {
-                setState(() {
-                  _sortType = sort;
-                });
-              }
-            },
-          )
-        ],
+      appBar: CategoryTabBar(
+        categories: _categories,
+        selectedCategoryId: _selectedCategoryId,
+        onCategorySelected: (id) => setState(() => _selectedCategoryId = id),
+        onRefreshCategories: _fetchData,
+        categoryService: _categoryService,
       ),
-      body: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
-          _buildCategoryFilter(),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: visible.length + (_isLoading ? 1 : 0),
-              itemBuilder: (_, index) {
-                if (index == visible.length) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final task = visible[index];
-                return TaskCard(
-                  task: task,
-                  onDelete: () {
-                    setState(() => _taskService.deleteTask(task.id));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('삭제되었습니다')));
-                  },
-                  onToggleExpand: () {
-                    setState(() => task.isExpanded = !task.isExpanded);
-                  },
-                );
-              },
+          Padding(
+            padding: EdgeInsets.all(2.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                DropdownButton<SortOption>(
+                  value: _sortOption,
+                  items: const [
+                    DropdownMenuItem(value: SortOption.startDate, child: Text("시간순")),
+                    DropdownMenuItem(value: SortOption.priority, child: Text("우선순위순")),
+                    DropdownMenuItem(value: SortOption.title, child: Text("이름순")),
+                  ],
+                  onChanged: (val) => setState(() => _sortOption = val!),
+                ),
+                IconButton(
+                  icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                  onPressed: () => setState(() => _ascending = !_ascending),
+                ),
+              ],
             ),
-          )
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _fetchData,
+              child: _filteredTasks.isEmpty
+                  ? Center(child: Text("등록된 할 일이 없습니다.", style: TextStyle(fontSize: 17.sp)))
+                  : ListView.separated(
+                padding: EdgeInsets.all(4.w),
+                itemCount: _filteredTasks.length,
+                separatorBuilder: (_, __) => Divider(height: 2.h),
+                itemBuilder: (context, idx) {
+                  final task = _filteredTasks[idx];
+                  return TaskCard(
+                    task: task,
+                    onChanged: (_) => _handleToggleDone(task),
+                    onEdit: () => _openTaskForm(task: task),
+                    onDelete: () => _handleDelete(task),
+                  );
+                },
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newTask = await showAddTaskDialog(context, _categories);
-          if (newTask != null) {
-            setState(() => _taskService.addTask(newTask));
-          }
-        },
+        onPressed: () => _openTaskForm(),
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilter() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        children: _categories
-            .map((cat) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ChoiceChip(
-            label: Text(cat),
-            selected: _selectedCategory == cat,
-            onSelected: (_) => setState(() => _selectedCategory = cat),
-          ),
-        ))
-            .toList(),
-      ),
-    );
-  }
-
-  Future<String?> _showTextInputDialog(String title, String initValue) async {
-    final controller = TextEditingController(text: initValue);
-    return showDialog<String>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: TextField(controller: controller),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("취소")),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("확인")),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _showSortDialog() async {
-    return showDialog<String>(
-      context: context,
-      builder: (_) => SimpleDialog(
-        title: const Text("정렬 기준 선택"),
-        children: ['최신순', '제목순', '우선순위순']
-            .map((e) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(context, e),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(e),
-              if (_sortType == e) const Icon(Icons.check, color: Colors.blue),
-            ],
-          ),
-        ))
-            .toList(),
       ),
     );
   }
