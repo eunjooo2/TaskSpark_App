@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/main_page.dart';
+import 'package:task_spark/utils/secure_storage.dart';
 import 'package:task_spark/ui/widgets/login_button.dart';
-
-import '../../util/pocket_base.dart';
-import '../../util/secure_storage.dart';
+import 'package:task_spark/utils/services/user_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -97,7 +96,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "google",
                                 title: "Google 로그인",
                                 onPressed: () async {
-                                  final authData = await PocketB()
+                                  final authData = await UserService()
                                       .sendLoginRequest("google");
                                   if (authData.token != "") {
                                     Navigator.push(
@@ -110,6 +109,10 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                           key: "userID",
                                           value: authData.record.id,
                                         );
+
+                                    await SecureStorage().storage.write(
+                                        key: "accessToken",
+                                        value: authData.token);
                                   } else {
                                     print(authData);
                                   }
@@ -120,8 +123,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "kakao",
                                 title: "Kakao 로그인",
                                 onPressed: () async {
-                                  final authData =
-                                      await PocketB().sendLoginRequest("kakao");
+                                  final authData = await UserService()
+                                      .sendLoginRequest("kakao");
                                   if (authData.token != "") {
                                     Navigator.push(
                                       context,
@@ -129,10 +132,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                         builder: (context) => const MainPage(),
                                       ),
                                     );
-                                    SecureStorage().storage.write(
+                                    await SecureStorage().storage.write(
                                           key: "userID",
                                           value: authData.record.id,
                                         );
+
+                                    await SecureStorage().storage.write(
+                                        key: "accessToken",
+                                        value: authData.token);
                                   } else {
                                     // 로그인 실패 다이얼로그 처리
                                   }

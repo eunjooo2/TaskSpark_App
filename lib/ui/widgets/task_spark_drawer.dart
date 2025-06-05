@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/achievement_page.dart';
-
-import '../../data/user.dart';
-import '../../util/pocket_base.dart';
-import '../../util/secure_storage.dart';
+import 'package:task_spark/utils/models/user.dart';
+import 'package:task_spark/utils/secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:task_spark/utils/services/user_service.dart';
 
 class TaskSparkDrawer extends StatefulWidget {
   const TaskSparkDrawer({super.key});
@@ -25,7 +25,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
 
   Future<void> fetchUser() async {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
-    final fetchedUser = await PocketB().getUserByID(id);
+    final fetchedUser = await UserService().getUserByID(id);
     setState(() {
       user = fetchedUser;
     });
@@ -137,8 +137,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                     currentAccountPicture: CircleAvatar(
                       backgroundImage: user!.avatar != null &&
                               user!.avatar!.isNotEmpty
-                          ? NetworkImage(
-                              "https://pb.aroxu.me/api/files/${user!.collectionId}/${user!.id}/${user!.avatar}")
+                          ? NetworkImage("https://pb.aroxu.me/${user!.avatar}")
                           : const AssetImage(
                               "assets/images/default_profile.png"),
                     ),

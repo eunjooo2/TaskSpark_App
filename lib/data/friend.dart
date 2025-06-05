@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'package:pocketbase/pocketbase.dart';
 
-enum FriendRequestStatus { pending, accepted, rejected, blocked }
+enum FriendRequestStatus { pending, accepted, blocked }
 
 extension FriendRequestStatusExtension on FriendRequestStatus {
   String get name => toString().split('.').last;
@@ -14,13 +15,13 @@ extension FriendRequestStatusExtension on FriendRequestStatus {
 }
 
 class FriendRequest {
-  final String collectionId;
+  final String id;
   final String senderId;
   final String receiverId;
   final FriendRequestStatus status;
 
   FriendRequest({
-    required this.collectionId,
+    required this.id,
     required this.senderId,
     required this.receiverId,
     required this.status,
@@ -29,19 +30,40 @@ class FriendRequest {
   @override
   String toString() {
     return jsonEncode({
-      "collectionId": collectionId,
+      "id": id,
       "senderId": senderId,
       "receiverId": receiverId,
-      "status": status,
+      "status": status.name,
     });
   }
 
   factory FriendRequest.fromJson(Map<String, dynamic> json) {
     return FriendRequest(
-      collectionId: json['id'],
+      id: json["id"],
       senderId: json['sender'],
       receiverId: json['receiver'],
-      status: FriendRequestStatusExtension.fromString(json['status']),
+      status:
+          _convertStatus(json['isAccepted'] as bool, json['isBlocked'] as bool),
     );
+  }
+
+  factory FriendRequest.fromRecordModel(RecordModel record) {
+    return FriendRequest(
+      id: record.data["id"],
+      senderId: record.data['sender'],
+      receiverId: record.data['receiver'],
+      status: _convertStatus(
+          record.data['isAccepted'] as bool, record.data['isBlocked'] as bool),
+    );
+  }
+}
+
+FriendRequestStatus _convertStatus(bool isAccepted, bool isBlocked) {
+  if (isBlocked == true) {
+    return FriendRequestStatus.blocked;
+  } else if (isAccepted == true) {
+    return FriendRequestStatus.accepted;
+  } else {
+    return FriendRequestStatus.pending;
   }
 }

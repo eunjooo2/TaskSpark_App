@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-
-import '../widgets/task_spark_drawer.dart';
-import '../pages/task_page.dart';
-import '../pages/social_page.dart';
-import '../pages/shop_page.dart';
-import '../../util/secure_storage.dart';
-import '../../util/validator.dart';
+import 'package:task_spark/ui/pages/friend_search.dart';
+import 'package:task_spark/ui/pages/social_page.dart';
+import 'package:task_spark/ui/pages/task_page.dart';
+import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
+import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/ui/pages/shop_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -116,7 +115,8 @@ class _MainPageState extends State<MainPage> {
               children: [
                 TextButton(
                   onPressed: SmartDialog.dismiss,
-                  child: Text("닫기", style: TextStyle(color: Colors.white.withAlpha(130))),
+                  child: Text("닫기",
+                      style: TextStyle(color: Colors.white.withAlpha(130))),
                 ),
                 TextButton(
                   onPressed: () {
@@ -153,7 +153,8 @@ class _MainPageState extends State<MainPage> {
         actions: [
           if (_selectedIndex == 1)
             IconButton(
-              icon: const FaIcon(FontAwesomeIcons.plus, color: Color(0xFF3B3B3B)),
+              icon:
+                  const FaIcon(FontAwesomeIcons.plus, color: Color(0xFF3B3B3B)),
               onPressed: _showAddFriendDialog,
             ),
         ],
