@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/utils/models/user.dart';
+import 'package:task_spark/data/user.dart';
 
 class FriendCard extends StatefulWidget {
   final User? generalUser;

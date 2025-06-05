@@ -3,16 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/widgets/friend_expanision.dart';
 import 'package:task_spark/ui/widgets/rival_expanision.dart';
-import 'package:task_spark/utils/models/friend.dart';
-import 'package:task_spark/utils/models/rival.dart';
-import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/data/friend.dart';
+import 'package:task_spark/data/rival.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/utils/services/friend_service.dart';
 import 'package:task_spark/main.dart';
 import 'package:task_spark/utils/services/rival_service.dart';
 import 'package:task_spark/utils/services/user_service.dart';
-
-import '../../data/static/friend_data.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});

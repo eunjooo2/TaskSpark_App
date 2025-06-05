@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/achievement_page.dart';
-import 'package:task_spark/utils/models/user.dart';
-import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/util/secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:task_spark/utils/services/user_service.dart';
 

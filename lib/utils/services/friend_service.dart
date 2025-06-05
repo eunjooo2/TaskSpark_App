@@ -1,7 +1,7 @@
-import '../models/friend.dart';
+import 'package:task_spark/data/friend.dart';
 import '../pocket_base.dart';
 import 'package:pocketbase/pocketbase.dart';
-import '../secure_storage.dart';
+import 'package:task_spark/util/secure_storage.dart';
 
 class FriendService {
   Future<List<RecordModel>> _getFriendRecordList() async {
