@@ -11,6 +11,7 @@ class User {
   String? name;
   String? avatar;
   num? exp;
+  int? points;
   Map<String, dynamic>? inventory;
   DateTime? created;
   DateTime? updated;
@@ -29,6 +30,7 @@ class User {
     this.name,
     this.nickname,
     this.tag,
+    this.points,
     this.avatar,
     this.exp,
     this.inventory,
@@ -51,6 +53,7 @@ class User {
       "name": name,
       "avatar": avatar,
       "exp": exp,
+      "points": points,
       "inventory": inventory,
       "created": created?.toIso8601String(),
       "updated": updated?.toIso8601String(),
@@ -66,8 +69,11 @@ class User {
       emailVisibility: record.data["emailVisibility"] as bool?,
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
+      nickname: record.data["nickname"] as String?,
+      tag: record.data["int"] as int?,
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
+      points: record.data["points"] as int?,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
@@ -87,6 +93,7 @@ class User {
       nickname: user["nickname"] as String?,
       tag: user["tag"] as int?,
       exp: user["exp"] as num?,
+      points: user["points"] as int?,
       inventory: user["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(user["created"]),
       updated: DateTime.tryParse(user["updated"]),
