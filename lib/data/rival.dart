@@ -1,19 +1,6 @@
 import 'dart:convert';
 import 'package:pocketbase/pocketbase.dart';
 
-enum RivalRequestStatus { pending, draw, sender, receiver }
-
-extension RivalRequestStatusExtension on RivalRequestStatus {
-  String get name => toString().split('.').last;
-
-  static RivalRequestStatus fromString(String status) {
-    return RivalRequestStatus.values.firstWhere(
-      (e) => e.name == status,
-      orElse: () => RivalRequestStatus.pending,
-    );
-  }
-}
-
 class RivalRequest {
   String id;
   DateTime start;
@@ -21,7 +8,6 @@ class RivalRequest {
   String friendID;
   bool isAccepted;
   String senderID;
-  RivalRequestStatus result;
   Map<String, dynamic> metadata;
   DateTime? created;
 
@@ -33,7 +19,6 @@ class RivalRequest {
     required this.senderID,
     required this.metadata,
     this.isAccepted = false,
-    this.result = RivalRequestStatus.pending,
     this.created,
   });
 
@@ -46,7 +31,6 @@ class RivalRequest {
       "friendID": friendID,
       "isAccepted": isAccepted,
       "senderID": senderID,
-      "result": result.name,
       "metadata": metadata,
       "created": created?.toIso8601String(),
     });
@@ -60,7 +44,6 @@ class RivalRequest {
       "friendID": friendID,
       "isAccepted": isAccepted,
       "senderID": senderID,
-      "result": result.name,
       "metadata": metadata,
       "created": created?.toIso8601String(),
     };
@@ -74,7 +57,6 @@ class RivalRequest {
       friendID: record.data["friend"],
       isAccepted: record.data["isAccepted"],
       senderID: record.data["sender"],
-      result: RivalRequestStatusExtension.fromString(record.data["result"]),
       metadata: record.data["metadata"],
       created: DateTime.parse(record.data["created"]),
     );

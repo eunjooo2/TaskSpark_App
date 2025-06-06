@@ -14,8 +14,7 @@ class RivalService {
       "friend": friend.id,
       "sender": userID,
       "isAccepted": false,
-      "metadata": {},
-      "result": RivalRequestStatus.pending.name,
+      "metadata": {"status": "pending"},
     };
     return RivalRequest.fromRecord(
         await PocketB().pocketBase.collection("rivals").create(body: body));

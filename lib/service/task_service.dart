@@ -98,8 +98,34 @@ class TaskService {
         await createTask(newTask);
       }
     }
+    // 할 일 완료 상태
+    await toggleDone(task);
+  }
 
-    // 원래 작업 삭제
-    await deleteTask(task.id!);
+  Future<List<Task>> _getTasks(String userID, bool isDone) async {
+    final DateTime nowDate = DateTime.now().toUtc();
+    final DateTime startDate =
+        nowDate.add(const Duration(hours: 9)); // 한국 시간 적용 (+9시간)
+    final DateTime endDate = nowDate.add(const Duration(days: 1, hours: 9));
+    final response = await pb.collection("tasks").getFullList(
+        filter:
+            "owner.id='$userID'&&isRepeatingTask=false&&endDate<'${startDate.toUtc()}'&&endDate>'${endDate.toUtc()}'&&isDone=$isDone");
+    // filter에 repeat 확인 알고리즘 필요
+    // 예시: repeatPeriod가 3이고, startDate가 6/20, endDate가 6/28이라면, 현재 날짜가 6/22, 6/25, 6/28 일때, count에 합계시켜야함
+    return response.map(Task.fromRecord).toList();
+  }
+
+  Future<int> getTaskGoalCount(String userID) async {
+    final tasks = await _getTasks(userID, false);
+    return tasks.length;
+  }
+
+  Future<int> getTaskDoneCount(String userID) async {
+    final tasks = await _getTasks(userID, true);
+    return tasks.length;
+  }
+
+  Future<bool> todayDone(String userID) async {
+    return await getTaskDoneCount(userID) == await getTaskGoalCount(userID);
   }
 }
