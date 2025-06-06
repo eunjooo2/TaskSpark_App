@@ -44,12 +44,12 @@ class AchievementService {
     final achievements = user.metadata?["achievements"];
 
     if (achievements != null) {
-      achievements['block_friend'] = 5;
+      achievements[key] = achievements[key] + 1;
 
       user.metadata?['achievements'] = achievements;
     }
 
-    await PocketB().pocketBase.collection("user").update(user.id ?? "", body: {
+    await PocketB().pocketBase.collection("users").update(user.id ?? "", body: {
       "metadata": user.metadata,
     });
   }
