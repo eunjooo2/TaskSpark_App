@@ -49,7 +49,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> with RouteAware {
       }
 
       SearchData result =
-          await UserService().getUserByNickanemAndTag(nickname, tag);
+          await UserService().getUserByNicknameAndTag(nickname, tag);
 
       final userID = await SecureStorage().storage.read(key: "userID");
 

@@ -38,13 +38,6 @@ class _ShopPageState extends State<ShopPage> {
     }
   }
 
-  void _addExperience(int exp) {
-    setState(() {
-      userExperience += exp;
-      _updateUserLevel();
-    });
-  }
-
   int get maxExpForNextLevelUp => _expForLevel(userLevel + 1);
   int get minExpForCurrentLevel => _expForLevel(userLevel);
 

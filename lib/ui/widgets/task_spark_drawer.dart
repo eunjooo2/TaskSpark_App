@@ -115,22 +115,22 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     accountName: Text(
-                      user!.name ?? "",
+                      user.name ?? "",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                     accountEmail: Text(
-                      user!.email ?? "",
+                      user.email ?? "",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                     currentAccountPicture: CircleAvatar(
                       backgroundImage:
-                          user!.avatar != null && user!.avatar!.isNotEmpty
+                          user.avatar != null && user.avatar!.isNotEmpty
                               ? NetworkImage(
-                                  "https://pb.aroxu.me/${user!.avatar}",
+                                  "https://pb.aroxu.me/${user.avatar}",
                                 )
                               : const AssetImage(
                                   "assets/images/default_profile.png",
@@ -159,12 +159,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                           MaterialPageRoute(
                             builder: (context) {
                               return AchievementPage(
-                                //임시(추후 수정)
-                                userValues: {
-                                  'make_task': 25,
-                                  'block_friend': 1,
-                                },
-                                nickname: user!.nickname ?? '익명',
+                                nickname: user.nickname ?? '익명',
                                 expRate: 0.0,
                                 myUser: user,
                               );

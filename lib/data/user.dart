@@ -17,6 +17,7 @@ class User {
   String? accessToken;
   String? nickname;
   int? tag;
+  Map<String, dynamic>? metadata;
 
   User({
     this.collectionId,
@@ -34,6 +35,7 @@ class User {
     this.created,
     this.updated,
     this.accessToken,
+    this.metadata,
   });
 
   @override
@@ -69,6 +71,7 @@ class User {
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
+      metadata: record.data["metadata"] as Map<String, dynamic>?,
     );
   }
 
@@ -87,6 +90,7 @@ class User {
       inventory: user["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(user["created"]),
       updated: DateTime.tryParse(user["updated"]),
+      metadata: user["metadata"] as Map<String, dynamic>?,
     );
   }
 }

@@ -31,6 +31,13 @@ class UserService {
     return User.fromJson(response);
   }
 
+  Future<User> getProfile() async {
+    final userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    return User.fromRecord(
+        await PocketB().pocketBase.collection("users").getOne(userID));
+  }
+
   /// 닉네임과 태그로 사용자 검색
   Future<SearchData> getUserByNicknameAndTag(String nickname, int? tag) async {
     final token = await SecureStorage().storage.read(key: "accessToken");
@@ -72,9 +79,9 @@ class UserService {
         "exp": currentExp + amount,
       });
 
-      print("✅ 경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
+      print("경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
     } catch (e) {
-      print("❌ 경험치 지급 실패: $e");
+      print("경험치 지급 실패: $e");
     }
   }
 
@@ -85,21 +92,6 @@ class UserService {
     } else {
       return request.senderId;
     }
-  }
-
-  Future<SearchData> getUserByNickanemAndTag(String nickname, int? tag) async {
-    final accessToken = await SecureStorage().storage.read(key: "accessToken");
-    Map<String, dynamic> query = {"nickname": nickname};
-    if (tag != null) {
-      query["tag"] = tag;
-    }
-
-    final response = await PocketB().pocketBase.send("/user/search",
-        method: "GET",
-        query: query,
-        headers: {"Authorization": "Bearer $accessToken"});
-
-    return SearchData.fromJson(response);
   }
 
   int convertExpToLevel(num exp) {

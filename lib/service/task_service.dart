@@ -76,7 +76,7 @@ class TaskService {
 
   /// 완료된 반복 할 일을 처리하고 보상을 지급합니다.
   Future<void> handleTaskCompletion(Task task) async {
-    // ✅ 경험치 계산: 우선순위 × 10
+    //  경험치 계산: 우선순위 × 10
     final priority = int.tryParse(task.priority ?? "3") ?? 3;
     final exp = priority * 10;
 
