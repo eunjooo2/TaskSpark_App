@@ -12,9 +12,9 @@ class CategoryService {
     final userId = await SecureStorage().storage.read(key: "userID");
 
     final result = await pb.collection('category').getFullList(
-      filter: "user.id='$userId'",
-      sort: "-created",
-    );
+          filter: "user.id='$userId'",
+          sort: "-created",
+        );
 
     return result.map(Category.fromRecord).toList();
   }

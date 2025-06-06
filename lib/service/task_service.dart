@@ -14,9 +14,9 @@ class TaskService {
     final userId = await SecureStorage().storage.read(key: "userID");
 
     final result = await pb.collection('tasks').getFullList(
-      filter: "owner.id='$userId'",
-      sort: "-created",
-    );
+          filter: "owner.id='$userId'",
+          sort: "-created",
+        );
 
     return result.map(Task.fromRecord).toList();
   }

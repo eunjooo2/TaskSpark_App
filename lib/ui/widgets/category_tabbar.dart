@@ -61,17 +61,17 @@ class CategoryTabBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               const SizedBox(width: 6),
               ...categories.map((c) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: GestureDetector(
-                  onLongPress: () => _openEditDialog(context, c),
-                  child: _buildChip(
-                    context: context,
-                    label: "${c.emoji ?? ''} ${c.name}",
-                    selected: selectedCategoryId == c.id,
-                    onSelected: () => onCategorySelected(c.id),
-                  ),
-                ),
-              )),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: GestureDetector(
+                      onLongPress: () => _openEditDialog(context, c),
+                      child: _buildChip(
+                        context: context,
+                        label: "${c.emoji ?? ''} ${c.name}",
+                        selected: selectedCategoryId == c.id,
+                        onSelected: () => onCategorySelected(c.id),
+                      ),
+                    ),
+                  )),
               const SizedBox(width: 6),
               ChoiceChip(
                 label: const Icon(Icons.add, size: 18),
@@ -99,7 +99,8 @@ class CategoryTabBar extends StatelessWidget implements PreferredSizeWidget {
       selectedColor: Colors.white,
       backgroundColor: Colors.grey[300],
       labelStyle: TextStyle(
-        color: selected ? Theme.of(context).colorScheme.primary : Colors.black87,
+        color:
+            selected ? Theme.of(context).colorScheme.primary : Colors.black87,
         fontWeight: FontWeight.bold,
       ),
     );

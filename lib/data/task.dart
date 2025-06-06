@@ -93,17 +93,17 @@ class Task {
 
   @override
   String toString() => jsonEncode({
-    "id": id,
-    "title": title,
-    "description": description,
-    "isRepeatingTask": isRepeatingTask,
-    "startDate": startDate?.toIso8601String(),
-    "endDate": endDate?.toIso8601String(),
-    "repeatPeriod": repeatPeriod,
-    "priority": priority,
-    "isDone": isDone,
-    "categoryId": categoryId,
-    "created": created?.toIso8601String(),
-    "updated": updated?.toIso8601String(),
-  });
+        "id": id,
+        "title": title,
+        "description": description,
+        "isRepeatingTask": isRepeatingTask,
+        "startDate": startDate?.toIso8601String(),
+        "endDate": endDate?.toIso8601String(),
+        "repeatPeriod": repeatPeriod,
+        "priority": priority,
+        "isDone": isDone,
+        "categoryId": categoryId,
+        "created": created?.toIso8601String(),
+        "updated": updated?.toIso8601String(),
+      });
 }
