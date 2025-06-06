@@ -71,7 +71,7 @@ class AchievementService {
     final diamondValue = achievement.amount["diamond"] ?? 0;
 
     if (achievement.isOnce == true) {
-      if (currentValue < diamondValue) {
+      if (currentValue <= diamondValue) {
         return 0;
       } else {
         return 5;
@@ -96,7 +96,7 @@ class AchievementService {
   double getProgress(Map<String, int> userValues, Achievement achievement) {
     final currentValue = userValues[achievement.type] ?? 0;
     if (achievement.isOnce == true) {
-      if (currentValue > achievement.amount["diamond"]!) {
+      if (currentValue >= achievement.amount["diamond"]!) {
         return 1.0;
       } else {
         return 0;
