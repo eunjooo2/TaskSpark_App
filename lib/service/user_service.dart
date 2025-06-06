@@ -74,12 +74,15 @@ class UserService {
       final userId = await SecureStorage().storage.read(key: "userID");
       final record = await _pb.collection("users").getOne(userId!);
       final currentExp = record.get<int>("exp");
+      final currentPoint = record.get<int>("points");
 
       await _pb.collection("users").update(userId, body: {
         "exp": currentExp + amount,
+        "points": currentPoint + amount,
       });
 
       print("경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
+      print("포인트 $amount 지급 완료 (총 point: ${currentPoint + amount})");
     } catch (e) {
       print("경험치 지급 실패: $e");
     }
