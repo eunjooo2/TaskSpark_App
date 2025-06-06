@@ -102,27 +102,58 @@ class TaskService {
     await toggleDone(task);
   }
 
-  Future<List<Task>> _getTasks(String userID, bool isDone) async {
-    final DateTime nowDate = DateTime.now().toUtc();
-    final DateTime startDate =
-        nowDate.add(const Duration(hours: 9)); // 한국 시간 적용 (+9시간)
-    final DateTime endDate = nowDate.add(const Duration(days: 1, hours: 9));
-    final response = await pb.collection("tasks").getFullList(
-        filter:
-            "owner.id='$userID'&&isRepeatingTask=false&&endDate<'${startDate.toUtc()}'&&endDate>'${endDate.toUtc()}'&&isDone=$isDone");
-    // filter에 repeat 확인 알고리즘 필요
-    // 예시: repeatPeriod가 3이고, startDate가 6/20, endDate가 6/28이라면, 현재 날짜가 6/22, 6/25, 6/28 일때, count에 합계시켜야함
-    return response.map(Task.fromRecord).toList();
+  Future<List<Task>> _getTasks(String userID) async {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 9)); // 한국 시간
+    final today = DateTime(now.year, now.month, now.day); // 오늘 날짜만
+
+    final allTasks = await pb.collection("tasks").getFullList(
+          filter: "owner.id='$userID'",
+        );
+
+    List<Task> todayTasks = [];
+
+    for (final record in allTasks) {
+      final task = Task.fromRecord(record);
+
+      if (task.isRepeatingTask == true) {
+        // 반복 작업 처리
+        final start = task.startDate?.toUtc();
+        final period = int.tryParse(task.repeatPeriod ?? "0") ?? 0;
+
+        if (start == null || period <= 0) continue;
+
+        final daysDiff = today
+            .difference(
+              DateTime(start.year, start.month, start.day),
+            )
+            .inDays;
+
+        if (daysDiff >= 0 && daysDiff % period == 0) {
+          todayTasks.add(task);
+        }
+      } else {
+        // 일반 작업 처리
+        final end = task.endDate?.toUtc();
+        if (end == null) continue;
+
+        final endDateOnly = DateTime(end.year, end.month, end.day);
+        if (endDateOnly == today) {
+          todayTasks.add(task);
+        }
+      }
+    }
+
+    return todayTasks;
   }
 
   Future<int> getTaskGoalCount(String userID) async {
-    final tasks = await _getTasks(userID, false);
+    final tasks = await _getTasks(userID);
     return tasks.length;
   }
 
   Future<int> getTaskDoneCount(String userID) async {
-    final tasks = await _getTasks(userID, true);
-    return tasks.length;
+    final tasks = await _getTasks(userID);
+    return tasks.where((task) => task.isDone == true).length;
   }
 
   Future<bool> todayDone(String userID) async {
