@@ -10,8 +10,50 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  int userPoints = 50000;
+  int userPoints = 10000;
+  int userExperience = 50000;
+  int userLevel = 0;
   String searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _updateUserLevel();
+  }
+
+  int _expForLevel(int level) {
+    if (level <= 0) return 0;
+    return 50 * level * level + 100 * level;
+  }
+
+  void _updateUserLevel() {
+    int calculatedLevel = 0;
+    while (userExperience >= _expForLevel(calculatedLevel + 1)) {
+      calculatedLevel++;
+    }
+    if (userLevel != calculatedLevel) {
+      setState(() {
+        userLevel = calculatedLevel;
+      });
+    }
+  }
+
+  void _addExperience(int exp) {
+    setState(() {
+      userExperience += exp;
+      _updateUserLevel();
+    });
+  }
+
+  int get maxExpForNextLevelUp => _expForLevel(userLevel + 1);
+  int get minExpForCurrentLevel => _expForLevel(userLevel);
+
+  double get progressFraction {
+    final required = maxExpForNextLevelUp - minExpForCurrentLevel;
+    final earned = userExperience - minExpForCurrentLevel;
+    if (required <= 0) return 1.0;
+    return earned / required;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +84,7 @@ class _ShopPageState extends State<ShopPage> {
         children: [
           const CircleAvatar(
             radius: 30,
-            backgroundImage: AssetImage(
+            backgroundImage: const AssetImage(
               "assets/images/default_profile.png",
             ),
             backgroundColor: Colors.white,
@@ -55,26 +97,36 @@ class _ShopPageState extends State<ShopPage> {
                 const Text(
                   "디스커버즈님!",
                   style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
+                Text(
+                  "레벨 $userLevel",
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(
+                  value: progressFraction.clamp(0.0, 1.0),
+                  color: Colors.orange,
+                  backgroundColor: Colors.grey[300],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "EXP: ${_formatPoints(userExperience - minExpForCurrentLevel)} / ${_formatPoints(maxExpForNextLevelUp - minExpForCurrentLevel)}",
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+                const SizedBox(height: 4),
                 Row(
-                  children: [
-                    const Icon(Icons.local_fire_department,
+                  children: const [
+                    Icon(Icons.local_fire_department,
                         color: Color.fromARGB(255, 225, 152, 57), size: 16),
-                    const Text(" 1.5x",
-                        style: TextStyle(fontSize: 14, color: Colors.black)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: 0.7,
-                        color: const Color.fromARGB(255, 26, 17, 3),
-                        backgroundColor: Colors.grey[300],
-                      ),
-                    ),
+                    SizedBox(width: 4),
+                    Text("1.5x 부스터",
+                        style: TextStyle(fontSize: 13, color: Colors.black54)),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -131,29 +183,25 @@ class _ShopPageState extends State<ShopPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage(item["image"]!),
+                Container(
+                  width: 50,
+                  height: 50,
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Image.asset(
+                    item["image"]!,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  item["name"] ?? "",
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(221, 15, 15, 15),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    item["description"] ?? "",
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+                Text(item["name"] ?? "",
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87)),
                 const SizedBox(height: 4),
                 Text(
                   "${_formatPoints(int.parse(item["price"]!))} SP",
@@ -184,8 +232,15 @@ class _ShopPageState extends State<ShopPage> {
             children: [
               Image.asset(item["image"]!, width: 60, height: 60),
               const SizedBox(height: 10),
-              Text(item["description"] ?? ""),
-              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  item["description"] ?? "",
+                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 "가격: ${_formatPoints(itemPrice)} SP",
                 style: const TextStyle(fontWeight: FontWeight.bold),
