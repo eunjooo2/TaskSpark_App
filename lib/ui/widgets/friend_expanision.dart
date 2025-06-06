@@ -59,6 +59,7 @@ class _FriendExpanisionState extends State<FriendExpanision> {
 
   Future<void> _fetchMatch() async {
     bool isMatch = await RivalService().isMatchedRival();
+    if (!mounted) return;
     setState(() {
       isMatched = isMatch;
     });
@@ -75,17 +76,22 @@ class _FriendExpanisionState extends State<FriendExpanision> {
   }
 
   Future<void> loadUsers() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
 
     List<User?> loadedUsers = List<User?>.filled(widget.data.length, null);
     List<bool> loadedRequests = List<bool>.filled(widget.data.length, false);
+
     for (int i = 0; i < widget.data.length; i++) {
+      if (!mounted) return; // 중간에 dispose 되었을 수 있음
       loadedUsers[i] = await _fetchUser(i);
+      if (!mounted) return;
       loadedRequests[i] = await RivalService().isSendRequest(widget.data[i]);
     }
 
+    if (!mounted) return;
     setState(() {
       users = loadedUsers;
       rivalRequestExists = loadedRequests;

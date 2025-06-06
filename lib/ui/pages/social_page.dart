@@ -60,6 +60,8 @@ class _SocialPageState extends State<SocialPage>
   Future<void> getFriend() async {
     final friendRequests = await FriendService().getFriendList();
 
+    if (!mounted) return;
+
     final user = await SecureStorage().storage.read(key: "userID");
 
     setState(() {
@@ -84,6 +86,9 @@ class _SocialPageState extends State<SocialPage>
   Future<void> getRival() async {
     final sentRivalRequests = await RivalService().loadSendRivalRequest();
     final receiveRivalRequests = await RivalService().loadReceiveRivalRequest();
+
+    if (!mounted) return;
+
     setState(() {
       sentRivalRequest = sentRivalRequests;
       receiveRivalRequest = receiveRivalRequests;
@@ -93,6 +98,7 @@ class _SocialPageState extends State<SocialPage>
 
   Future<void> _fetchMatch() async {
     final matchResult = await RivalService().isMatchedRival();
+    if (!mounted) return;
     setState(() {
       isMatched = matchResult;
     });
