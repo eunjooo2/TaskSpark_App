@@ -22,7 +22,20 @@ class RivalRequest {
   bool isAccepted;
   String senderID;
   RivalRequestStatus result;
+  Map<String, dynamic> metadata;
   DateTime? created;
+
+  RivalRequest({
+    required this.id,
+    required this.start,
+    required this.end,
+    required this.friendID,
+    required this.senderID,
+    required this.metadata,
+    this.isAccepted = false,
+    this.result = RivalRequestStatus.pending,
+    this.created,
+  });
 
   @override
   String toString() {
@@ -34,6 +47,7 @@ class RivalRequest {
       "isAccepted": isAccepted,
       "senderID": senderID,
       "result": result.name,
+      "metadata": metadata,
       "created": created?.toIso8601String(),
     });
   }
@@ -47,20 +61,10 @@ class RivalRequest {
       "isAccepted": isAccepted,
       "senderID": senderID,
       "result": result.name,
+      "metadata": metadata,
       "created": created?.toIso8601String(),
     };
   }
-
-  RivalRequest({
-    required this.id,
-    required this.start,
-    required this.end,
-    required this.friendID,
-    required this.senderID,
-    this.isAccepted = false,
-    this.result = RivalRequestStatus.pending,
-    this.created,
-  });
 
   factory RivalRequest.fromRecord(RecordModel record) {
     return RivalRequest(
@@ -71,6 +75,7 @@ class RivalRequest {
       isAccepted: record.data["isAccepted"],
       senderID: record.data["sender"],
       result: RivalRequestStatusExtension.fromString(record.data["result"]),
+      metadata: record.data["metadata"],
       created: DateTime.parse(record.data["created"]),
     );
   }

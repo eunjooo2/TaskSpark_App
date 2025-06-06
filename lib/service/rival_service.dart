@@ -14,6 +14,7 @@ class RivalService {
       "friend": friend.id,
       "sender": userID,
       "isAccepted": false,
+      "metadata": {},
       "result": RivalRequestStatus.pending.name,
     };
     return RivalRequest.fromRecord(
