@@ -1,163 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:task_spark/ui/pages/social.dart';
+import 'package:task_spark/ui/pages/friend_search.dart';
+import 'package:task_spark/ui/pages/social_page.dart';
+import 'package:task_spark/ui/pages/task_page.dart';
 import 'package:task_spark/ui/widgets/task_spark_drawer.dart';
-import 'package:task_spark/ui/pages/splash.dart';
-import 'package:task_spark/utils/pocket_base.dart';
-import 'package:task_spark/utils/secure_storage.dart';
+import 'package:task_spark/ui/pages/shop_page.dart';
 
 class MainPage extends StatefulWidget {
-  MainPage({super.key});
+  const MainPage({super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 0;
-  final PageController _pageController = PageController(initialPage: 0);
+  final PageController _pageController = PageController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<String> navigationList = ["Tasks", "Social", "Shop"];
-  String appBarTitle = "";
+  final _nicknameController = TextEditingController();
+  final _tagController = TextEditingController();
+
+  final List<String> _navigationTitles = ["Tasks", "Social", "Shop"];
+  int _selectedIndex = 0;
+  String _appBarTitle = "Tasks";
 
   @override
   void dispose() {
-    super.dispose();
     _pageController.dispose();
-    printUserID();
+    _nicknameController.dispose();
+    _tagController.dispose();
+    super.dispose();
   }
 
-  Future<void> printUserID() async {
-    print(await SecureStorage().storage.read(key: "userID"));
+  void _onNavTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _appBarTitle = _navigationTitles[index];
+    });
+    _pageController.jumpToPage(index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      drawer: const TaskSparkDrawer(),
       appBar: AppBar(
         title: Text(
-          appBarTitle,
+          _appBarTitle,
           style: TextStyle(
             fontSize: 18.sp,
             color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        leading: Container(
-          padding: EdgeInsets.only(left: 3.w),
-          child: Center(
-            child: IconButton(
-              icon: const FaIcon(
-                FontAwesomeIcons.bars,
-                color: Color.fromARGB(255, 59, 59, 59),
-              ),
-              onPressed: () {
-                _scaffoldKey.currentState!.openDrawer();
-              },
-            ),
-          ),
+        leading: IconButton(
+          icon: const FaIcon(FontAwesomeIcons.bars, color: Color(0xFF3B3B3B)),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-      ), // settings, achiev와 프로필 및 각종 설정이 Drawer 형태로 들어갈 것
-      drawer: TaskSparkDrawer(),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashFactory: NoSplash.splashFactory,
-        ),
-        child: Container(
-          padding: const EdgeInsets.only(
-            top: 5,
-          ),
-          decoration: const BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: Colors.grey,
-                width: 1,
+        actions: [
+          if (_selectedIndex == 1)
+            Padding(
+              padding: EdgeInsets.only(right: 5.w),
+              child: IconButton(
+                icon: FaIcon(
+                  FontAwesomeIcons.search,
+                  color: Color.fromARGB(255, 59, 59, 59),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FriendSearchPage(),
+                    ),
+                  );
+                },
               ),
-            ),
-          ),
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.shifting,
-            items: [
-              BottomNavigationBarItem(
-                icon: const FaIcon(FontAwesomeIcons.listCheck),
-                label: navigationList[0],
-              ),
-              BottomNavigationBarItem(
-                icon: const FaIcon(FontAwesomeIcons.userGroup),
-                label: navigationList[1],
-              ),
-              BottomNavigationBarItem(
-                icon: const FaIcon(FontAwesomeIcons.store),
-                label: navigationList[2],
-              ),
-            ],
-            onTap: (int value) {
-              setState(() {
-                _selectedIndex = value;
-              });
-              _pageController.animateToPage(
-                value,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeIn,
-              );
-            },
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Colors.grey,
-            currentIndex: _selectedIndex,
-          ),
-        ),
+            )
+        ],
       ),
-      body: PageView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 4,
+      body: PageView(
         controller: _pageController,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    child: Text("로그 아웃"),
-                    onPressed: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SplashPage(),
-                        ),
-                      );
-                      PocketB().pocketBase.authStore.clear();
-                    },
-                  ),
-                  SizedBox(height: 5.h),
-                  TextButton(
-                    child: Text("유저 아이디 확인 (콘솔)"),
-                    onPressed: () async {
-                      String userID =
-                          await SecureStorage().storage.read(key: "userID") ??
-                              "";
-                      print(userID);
-                    },
-                  ),
-                ],
-              ),
-            );
-          } else if (index == 1) {
-            return SocialPage(); // 소셜 페이지
-          } else if (index == 2) {
-            return Center(
-              child: Text("Hello World3"), // 상점 페이지
-            );
-          }
-          return null;
-        },
-        onPageChanged: (int index) {
-          setState(() {
-            appBarTitle = navigationList[index];
-          });
-        },
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          TaskPage(),
+          SocialPage(),
+          ShopPage(),
+        ],
+      ),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onNavTap,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.shifting,
+          items: [
+            BottomNavigationBarItem(
+              icon: const FaIcon(FontAwesomeIcons.listCheck),
+              label: _navigationTitles[0],
+            ),
+            BottomNavigationBarItem(
+              icon: const FaIcon(FontAwesomeIcons.userGroup),
+              label: _navigationTitles[1],
+            ),
+            BottomNavigationBarItem(
+              icon: const FaIcon(FontAwesomeIcons.store),
+              label: _navigationTitles[2],
+            ),
+          ],
+        ),
       ),
     );
   }

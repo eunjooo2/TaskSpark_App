@@ -1,14 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:task_spark/ui/pages/splash.dart';
+import 'package:task_spark/ui/pages/splash_page.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const TaskSparkApp());
 }
 
-class TaskSparkApp extends StatelessWidget {
+class TaskSparkApp extends StatefulWidget {
   const TaskSparkApp({super.key});
+
+  @override
+  State<TaskSparkApp> createState() => _TaskSparkAppState();
+}
+
+class _TaskSparkAppState extends State<TaskSparkApp> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final modalRoute = ModalRoute.of(context);
+      if (modalRoute != null) {
+        routeObserver.subscribe(this, modalRoute);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // 이 함수는 현재 페이지가 다시 보일 때 호출됨
+  @override
+  void didPopNext() {
+    refreshDataIfNeeded();
+  }
+
+  void refreshDataIfNeeded() {
+    print("뒤에서 돌아왔음! 상태 갱신할게요");
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveSizer(
@@ -25,6 +61,9 @@ class TaskSparkApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
+          navigatorObservers: [
+            routeObserver,
+          ],
           debugShowCheckedModeBanner: false,
           home: const TaskSparkMainPage(title: 'TaskSpark'),
         );
