@@ -1,5 +1,5 @@
-import 'package:pocketbase/pocketbase.dart';
 import 'dart:convert';
+import 'package:pocketbase/pocketbase.dart';
 
 class User {
   String? collectionId;
@@ -70,10 +70,10 @@ class User {
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
       nickname: record.data["nickname"] as String?,
-      tag: record.data["int"] as int?,
+      tag: record.data["tag"] as int?,
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
-      points: record.data["points"] as int?,
+      points: record.data["points"] ?? record.data["point"] ?? 0,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
@@ -93,12 +93,20 @@ class User {
       nickname: user["nickname"] as String?,
       tag: user["tag"] as int?,
       exp: user["exp"] as num?,
-      points: user["points"] as int?,
+      points: user["points"] ?? user["point"] ?? 0,
       inventory: user["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(user["created"]),
       updated: DateTime.tryParse(user["updated"]),
       metadata: user["metadata"] as Map<String, dynamic>?,
     );
+  }
+
+  /// ✅ avatarUrl 생성기 (정상 이미지 렌더링용)
+  String get avatarUrl {
+    if (avatar == null || avatar!.isEmpty || id == null || collectionId == null) {
+      return "https://example.com/default-profile.png"; // 대체 이미지 경로
+    }
+    return "https://pb.aroxu.me/api/files/$collectionId/$id/$avatar";
   }
 }
 

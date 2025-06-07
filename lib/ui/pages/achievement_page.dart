@@ -133,7 +133,6 @@ class _AchievementPageState extends State<AchievementPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                _buildTopBar(),
                 const SizedBox(height: 12),
                 Expanded(
                   child: ListView.builder(
@@ -264,80 +263,6 @@ class _AchievementPageState extends State<AchievementPage> {
   }
 
   //업적 페이지 프로필 바
-  Widget _buildTopBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundImage: widget.myUser.avatar != null &&
-                        widget.myUser.avatar!.isNotEmpty
-                    ? NetworkImage(
-                        "https://pb.aroxu.me/${widget.myUser.avatar!}")
-                    : const AssetImage("assets/images/default_profile.png")
-                        as ImageProvider,
-              ),
-              Container(
-                width: 12,
-                height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF5BD6FF),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${widget.nickname}님 환영합니다!',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.local_fire_department,
-                        color: Colors.orange, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      'EXP ${(widget.expRate * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                LinearProgressIndicator(
-                  value: widget.expRate.toDouble().clamp(0.0, 1.0),
-                  minHeight: 8,
-                  backgroundColor: const Color(0xFFE0E0E0),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF5CFF8E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Color _getTierColor(String tier) {
     switch (tier) {

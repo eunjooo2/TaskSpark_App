@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:task_spark/data/friend.dart';
@@ -6,6 +10,7 @@ import '../data/user.dart';
 import '../util/pocket_base.dart';
 import '../util/secure_storage.dart';
 
+// 2025. 06. 07 : 유저 응답 결과 전체 반환 하게 변경
 class UserService {
   final PocketBase _pb = PocketB().pocketBase;
 
@@ -21,14 +26,24 @@ class UserService {
   Future<User> getUserByID(String userId) async {
     final token = await SecureStorage().storage.read(key: "accessToken");
 
-    final response = await _pb.send(
-      "/user",
-      method: "GET",
-      query: {"cid": userId},
-      headers: {"Authorization": "Bearer $token"},
-    );
+    // 인증 헤더 설정
+    _pb.authStore.save(token ?? '', null);
 
-    return User.fromJson(response);
+    try {
+      final record = await _pb.collection("users").getOne(
+        userId,
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print(record.toString());
+
+      return User.fromRecord(record);
+    } catch (e) {
+      print("유저 조회 실패: $e");
+      rethrow;
+    }
   }
 
   Future<User> getProfile() async {
@@ -122,4 +137,37 @@ class UserService {
     int nextLevelExp = 50 * (level + 1) * (level + 1) + 100 * (level + 1);
     return nextLevelExp - exp;
   }
+
+  Future<void> updateUserProfile({
+    required String userId,
+    required String name,
+    required String tag,
+    File? avatarFile,
+  }) async {
+    final updateBody = <String, dynamic>{
+      "name": name,
+      "tag": int.tryParse(tag),
+    };
+
+    if (avatarFile != null) {
+      final file = await http.MultipartFile.fromPath(
+        'avatar',
+        avatarFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      );
+
+      await _pb.collection('users').update(
+        userId,
+        body: updateBody,
+        files: [file], // 반드시 non-null 리스트로 전달
+      );
+    } else {
+      await _pb.collection('users').update(
+        userId,
+        body: updateBody,
+      );
+    }
+  }
+
+
 }
