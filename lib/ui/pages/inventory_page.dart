@@ -43,6 +43,7 @@ class _InventoryPageState extends State<InventoryPage> {
     }
 
     rawData = rawItems.whereType<Map<String, dynamic>>().toList();
+    rawData = rawData.where((e) => e["isUsed"] == false).toList();
     final ids = rawData.map((e) => e["id"] as String).toList();
 
     try {
