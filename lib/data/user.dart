@@ -1,5 +1,5 @@
-import 'package:pocketbase/pocketbase.dart';
 import 'dart:convert';
+import 'package:pocketbase/pocketbase.dart';
 
 class User {
   String? collectionId;
@@ -11,12 +11,14 @@ class User {
   String? name;
   String? avatar;
   num? exp;
+  int? point;
   Map<String, dynamic>? inventory;
   DateTime? created;
   DateTime? updated;
   String? accessToken;
   String? nickname;
   int? tag;
+  Map<String, dynamic>? metadata;
 
   User({
     this.collectionId,
@@ -28,12 +30,14 @@ class User {
     this.name,
     this.nickname,
     this.tag,
+    this.point,
     this.avatar,
     this.exp,
     this.inventory,
     this.created,
     this.updated,
     this.accessToken,
+    this.metadata,
   });
 
   @override
@@ -49,6 +53,7 @@ class User {
       "name": name,
       "avatar": avatar,
       "exp": exp,
+      "point": point,
       "inventory": inventory,
       "created": created?.toIso8601String(),
       "updated": updated?.toIso8601String(),
@@ -64,11 +69,15 @@ class User {
       emailVisibility: record.data["emailVisibility"] as bool?,
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
+      nickname: record.data["nickname"] as String?,
+      tag: record.data["tag"] as int?,
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
+      point: record.data["point"] ?? record.data["point"] ?? 0,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),
+      metadata: record.data["metadata"] as Map<String, dynamic>?,
     );
   }
 
@@ -84,10 +93,23 @@ class User {
       nickname: user["nickname"] as String?,
       tag: user["tag"] as int?,
       exp: user["exp"] as num?,
+      point: user["point"] ?? user["point"] ?? 0,
       inventory: user["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(user["created"]),
       updated: DateTime.tryParse(user["updated"]),
+      metadata: user["metadata"] as Map<String, dynamic>?,
     );
+  }
+
+  /// ✅ avatarUrl 생성기 (정상 이미지 렌더링용)
+  String get avatarUrl {
+    if (avatar == null ||
+        avatar!.isEmpty ||
+        id == null ||
+        collectionId == null) {
+      return "https://example.com/default-profile.png"; // 대체 이미지 경로
+    }
+    return "https://pb.aroxu.me/api/files/$collectionId/$id/$avatar";
   }
 }
 

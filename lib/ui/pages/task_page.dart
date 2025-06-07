@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:task_spark/util/secure_storage.dart';
 
 import '../../data/category.dart';
 import '../../data/task.dart';
@@ -45,10 +46,17 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   Future<void> _fetchData() async {
+    final userID = await SecureStorage().storage.read(key: "userID") ?? "";
+    print(await _taskService.getTaskGoalCount(userID));
+
+    if (!mounted) return;
     setState(() => _isLoading = true);
+
     try {
       final categories = await _categoryService.getAllCategories();
       final tasks = await _taskService.getAllTasks();
+
+      if (!mounted) return;
       setState(() {
         _categories = categories;
         _tasks = tasks;
@@ -56,6 +64,7 @@ class _TaskPageState extends State<TaskPage> {
     } catch (_) {
       _showSnackBar("데이터 불러오기 실패 😥");
     } finally {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -95,10 +104,14 @@ class _TaskPageState extends State<TaskPage> {
   Future<void> _handleToggleDone(Task task) async {
     try {
       if (task.isDone == true) return;
-      if (task.startDate != null && task.startDate!.isAfter(DateTime.now()))
+      if (task.startDate != null &&
+          task.startDate!.isAfter(DateTime.now().add(Duration(hours: 9)))) {
         return;
+      }
+
       await _taskService.handleTaskCompletion(task);
       _showSnackBar("할 일 완료! 경험치가 지급되었습니다 🎉");
+
       await _fetchData();
     } catch (e) {
       _showSnackBar("완료 처리 실패: $e");

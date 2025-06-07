@@ -27,6 +27,7 @@ class _SocialPageState extends State<SocialPage>
   late List<FriendRequest> acceptedFriends = [];
   late List<RivalRequest> receiveRivalRequest = [];
   late List<RivalRequest> sentRivalRequest = [];
+  List<RivalResult> isWin = [];
   bool isFriendLoading = true;
   bool isRivalLoading = true;
   bool isUserLoading = true;
@@ -34,6 +35,7 @@ class _SocialPageState extends State<SocialPage>
   RivalRequest? rivalInfo;
   User? enemy;
   int dayDiff = 0;
+  int nowDayDiff = 0;
 
   @override
   void didChangeDependencies() {
@@ -57,8 +59,21 @@ class _SocialPageState extends State<SocialPage>
     getRival();
   }
 
+  Color? getCardColor(int index) {
+    switch (isWin[index]) {
+      case RivalResult.win:
+        return Colors.indigoAccent[700];
+      case RivalResult.lose:
+        return Colors.red[700];
+      case RivalResult.draw:
+        return Colors.grey[700];
+    }
+  }
+
   Future<void> getFriend() async {
     final friendRequests = await FriendService().getFriendList();
+
+    if (!mounted) return;
 
     final user = await SecureStorage().storage.read(key: "userID");
 
@@ -84,6 +99,9 @@ class _SocialPageState extends State<SocialPage>
   Future<void> getRival() async {
     final sentRivalRequests = await RivalService().loadSendRivalRequest();
     final receiveRivalRequests = await RivalService().loadReceiveRivalRequest();
+
+    if (!mounted) return;
+
     setState(() {
       sentRivalRequest = sentRivalRequests;
       receiveRivalRequest = receiveRivalRequests;
@@ -92,21 +110,65 @@ class _SocialPageState extends State<SocialPage>
   }
 
   Future<void> _fetchMatch() async {
-    final matchResult = await RivalService().isMatchedRival();
-    setState(() {
-      isMatched = matchResult;
-    });
-    if (isMatched == true) {
-      final rival = await RivalService().loadMatchedRivalInfo();
-      final friendRequestInfo =
-          await FriendService().getFriendByRecordID(rival.friendID);
-      final enemyUserID = await UserService().getOtherUserID(friendRequestInfo);
-      final userInfo = await UserService().getUserByID(enemyUserID);
+    try {
+      final matchResult = await RivalService().isMatchedRival();
+      if (!mounted) return;
+
+      if (!matchResult) {
+        setState(() {
+          isMatched = false;
+          isUserLoading = false;
+        });
+        return;
+      } else {
+        setState(() {
+          isRivalLoading = true;
+        });
+      }
+
+      final enemyInfoFuture = RivalService().loadEnemyUser();
+      final rivalInfoFuture = RivalService().loadMatchedRivalInfo();
+
+      final enemyInfo = await enemyInfoFuture;
+      final rival = await rivalInfoFuture;
+
+      final now = DateTime.now().toUtc().add(const Duration(hours: 9));
+      final today = DateTime(now.year, now.month, now.day);
+      final startDate =
+          DateTime(rival.start.year, rival.start.month, rival.start.day);
+
+      final newDayDiff = rival.end.difference(rival.start).inDays;
+      final newNowDayDiff = today.difference(startDate).inDays;
+
+      final clampedNowDayDiff = newNowDayDiff.clamp(0, newDayDiff);
+
+      final resultFutures = List.generate(
+        clampedNowDayDiff,
+        (i) => RivalService().getNDaysResult(i + 1),
+      );
+
+      final results = await Future.wait(resultFutures);
+
+      if (!mounted) return;
+
       setState(() {
+        isMatched = true;
+        enemy = enemyInfo;
         rivalInfo = rival;
-        enemy = userInfo;
+        dayDiff = newDayDiff;
+        nowDayDiff = clampedNowDayDiff;
+        isWin = results;
         isUserLoading = false;
-        dayDiff = rival.end.difference(rival.start).inDays;
+        isRivalLoading = false;
+      });
+    } catch (e, stack) {
+      debugPrint("에러 발생: $e");
+      debugPrint("스택트레이스: $stack");
+      // 에러 발생 시 안전하게 fallback
+      if (!mounted) return;
+      setState(() {
+        isUserLoading = false;
+        isMatched = false;
       });
     }
   }
@@ -248,10 +310,9 @@ class _SocialPageState extends State<SocialPage>
                                         horizontal: 3.w,
                                       ),
                                       child: Card(
-                                        color: index < 5
-                                            ? (index < 2
-                                                ? Colors.red[700]
-                                                : Colors.indigoAccent[700])
+                                        color: (index < nowDayDiff &&
+                                                isWin.length > index)
+                                            ? getCardColor(index)
                                             : null,
                                         child: SizedBox(
                                           width: 100.w,
