@@ -1,35 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:task_spark/data/user.dart';
 import 'package:task_spark/data/item.dart';
 import 'package:task_spark/service/item_service.dart';
+import 'package:task_spark/service/user_service.dart';
+import 'package:task_spark/util/pocket_base.dart';
 
 class InventoryPage extends StatefulWidget {
-  final User user;
-
-  const InventoryPage({super.key, required this.user});
+  const InventoryPage({super.key});
 
   @override
   State<InventoryPage> createState() => _InventoryPageState();
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  final pb = PocketBase("https://pb.aroxu.me");
-  late final ItemService itemService;
+  final itemService = ItemService(PocketB().pocketBase);
+  final userService = UserService();
 
   List<Item> items = [];
+  User? user;
   List<Map<String, dynamic>> rawData = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    itemService = ItemService(pb);
     fetchInventory();
   }
 
+  Future<void> fetchUser() async {
+    final loadUser = await userService.getProfile();
+    setState(() {
+      user = loadUser;
+    });
+  }
+
   Future<void> fetchInventory() async {
-    final rawItems = widget.user.inventory?["items"];
+    await fetchUser();
+    final rawItems = user?.inventory?["items"];
     if (rawItems is! List) {
       setState(() => isLoading = false);
       return;
@@ -53,8 +60,65 @@ class _InventoryPageState extends State<InventoryPage> {
     return rawData.firstWhere((e) => e["id"] == id, orElse: () => {});
   }
 
-  String getImageUrl(String recordId, String fileName) {
-    return "https://pb.aroxu.me/api/files/item/$recordId/$fileName";
+  Future<void> handleUseItem(Item item) async {
+    if (user == null) return;
+
+    final raw = getRawById(item.id);
+    int quantity = raw["quantity"] ?? 0;
+
+    if (quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("아이템이 더 이상 없습니다.")),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("아이템 사용"),
+        content: Text("${item.title} 아이템을 사용하시겠습니까?\n(남은 수량: $quantity개)"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("취소"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("사용"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() {
+      quantity -= 1;
+      raw["quantity"] = quantity;
+      raw["isUsed"] = quantity == 0;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${item.title} 아이템을 1개 사용했습니다.")),
+    );
+
+    // ✅ PocketBase에 업데이트
+    try {
+      final updatedUser = await userService.updateInventory(user!.id!, rawData);
+      debugPrint("인벤토리 업데이트 성공: ${updatedUser.id}");
+    } catch (e) {
+      debugPrint("인벤토리 업데이트 실패: $e");
+    }
+  }
+
+  bool shouldShowUseButton(Item item, Map<String, dynamic> raw) {
+    final quantity = raw["quantity"] ?? 0;
+    final isUsed = raw["isUsed"] ?? false;
+    return item.title != "x1.2경험치 부스트" &&
+        item.title != "라이벌 신청권" &&
+        !isUsed &&
+        quantity > 0;
   }
 
   @override
@@ -156,6 +220,27 @@ class _InventoryPageState extends State<InventoryPage> {
                                   Text("만료일: $dueDate",
                                       style: const TextStyle(
                                           fontSize: 12, color: Colors.grey)),
+                                  if (shouldShowUseButton(item, raw))
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
+                                        child: ElevatedButton(
+                                          onPressed: () => handleUseItem(item),
+                                          child: const Text("사용"),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.greenAccent.shade700,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),

@@ -41,7 +41,6 @@ class _ShopPageState extends State<ShopPage> {
       return item.title.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
 
-    // ✅ 정렬 적용
     filteredItems.sort((a, b) {
       switch (_sortOption) {
         case 'price_asc':
@@ -68,83 +67,6 @@ class _ShopPageState extends State<ShopPage> {
               ),
             ),
     );
-  }
-
-  Widget _buildProfileSection() {
-    final image = user?.avatar != null && user!.avatar!.isNotEmpty
-        ? NetworkImage(
-            "https://pb.aroxu.me/api/files/_pb_users_auth_/${user!.id}/${user!.avatar}")
-        : const AssetImage("assets/images/default_profile.png")
-            as ImageProvider;
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : Container(
-            padding: const EdgeInsets.all(12),
-            color: Colors.grey[200],
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundImage: image,
-                  backgroundColor: Colors.white,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${user!.nickname}님 환영합니다",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        "레벨 ${UserService().convertExpToLevel(user!.exp ?? 0)}",
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: UserService()
-                                .experienceToNextLevel(user!.exp as int) /
-                            user!.exp!.toDouble(),
-                        color: Colors.orange,
-                        backgroundColor: Colors.grey[300],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "EXP: ${_formatPoints(user!.exp as int)} / ${_formatPoints(UserService().experienceToNextLevel(user!.exp as int) + user!.exp! as int)}",
-                        style: const TextStyle(
-                            fontSize: 12, color: Colors.black54),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Icon(Icons.local_fire_department,
-                              color: Color.fromARGB(255, 225, 152, 57),
-                              size: 16),
-                          SizedBox(width: 4),
-                          Text("1.5x 부스터",
-                              style: TextStyle(
-                                  fontSize: 13, color: Colors.black54)),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                Text(
-                  "${_formatPoints(user!.point!)} SP",
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                ),
-              ],
-            ),
-          );
   }
 
   Widget _buildSearchBar() {
@@ -362,8 +284,22 @@ class _ShopPageState extends State<ShopPage> {
     final itemsList = List<Map<String, dynamic>>.from(inventory["items"] ?? []);
 
     final now = DateTime.now().toUtc();
-    bool found = false;
 
+    // ✅ 방어권 2개 제한 로직
+    if (item.title == "방어권") {
+      int defenseItemCount = itemsList
+          .where((inv) => inv["id"] == item.id && inv["isUsed"] == false)
+          .fold(0, (sum, inv) => (inv["quantity"] ?? 0) + sum);
+
+      if (defenseItemCount >= 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("방어권은 2개 이상 구매할 수 없습니다.")),
+        );
+        return false;
+      }
+    }
+
+    bool found = false;
     for (var inv in itemsList) {
       if (inv["id"] == item.id && inv["isUsed"] == false) {
         inv["quantity"] = (inv["quantity"] ?? 1) + 1;
@@ -389,7 +325,7 @@ class _ShopPageState extends State<ShopPage> {
     inventory["items"] = itemsList;
 
     final updated = await UserService().updateUserByID(userId, {
-      "points": newPoints,
+      "point": newPoints,
       "inventory": inventory,
     });
 

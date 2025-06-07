@@ -83,7 +83,6 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     final user = json["data"];
-    print(user);
     return User(
       accessToken: json["token"],
       id: user["id"],

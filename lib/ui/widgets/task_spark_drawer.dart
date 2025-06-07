@@ -34,7 +34,6 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   Future<void> fetchUser() async {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
     final fetchedUser = await UserService().getUserByID(id);
-    print(fetchedUser);
     setState(() {
       user = fetchedUser;
       isLoading = false;
@@ -228,7 +227,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => InventoryPage(user: user),
+                            builder: (context) => InventoryPage(),
                           ),
                         );
                       }),

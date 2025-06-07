@@ -75,11 +75,11 @@ class UserService {
       final userId = await SecureStorage().storage.read(key: "userID");
       final record = await _pb.collection("users").getOne(userId!);
       final currentExp = record.get<int>("exp");
-      final currentPoint = record.get<int>("points");
+      final currentPoint = record.get<int>("point");
 
       await _pb.collection("users").update(userId, body: {
         "exp": currentExp + amount,
-        "points": currentPoint + amount,
+        "point": currentPoint + amount,
       });
 
       print("경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
@@ -98,7 +98,7 @@ class UserService {
       }
 
       await _pb.collection("users").update(userId, body: {
-        "points": newPoints,
+        "point": newPoints,
       });
 
       print("✅ 포인트 업데이트 완료: $newPoints SP");
@@ -235,5 +235,15 @@ class UserService {
             body: updateBody,
           );
     }
+  }
+
+  Future<User> updateInventory(
+      String userId, List<Map<String, dynamic>> items) async {
+    final response =
+        await PocketB().pocketBase.collection("users").update(userId, body: {
+      "inventory": {"items": items}
+    });
+
+    return User.fromRecord(response);
   }
 }
