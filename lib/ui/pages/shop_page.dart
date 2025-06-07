@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
-import '../../data/static/shop_item_data.dart';
+import 'package:task_spark/data/item.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/service/user_service.dart';
+import 'package:task_spark/util/pocket_base.dart';
+import 'package:task_spark/service/item_service.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({super.key});
@@ -10,125 +13,45 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  int userPoints = 10000;
-  int userExperience = 50000;
-  int userLevel = 0;
+  User? user;
+  List<Item> items = [];
   String searchQuery = "";
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _updateUserLevel();
+    fetchUserAndItems();
   }
 
-  int _expForLevel(int level) {
-    if (level <= 0) return 0;
-    return 50 * level * level + 100 * level;
-  }
-
-  void _updateUserLevel() {
-    int calculatedLevel = 0;
-    while (userExperience >= _expForLevel(calculatedLevel + 1)) {
-      calculatedLevel++;
-    }
-    if (userLevel != calculatedLevel) {
-      setState(() {
-        userLevel = calculatedLevel;
-      });
-    }
-  }
-
-  int get maxExpForNextLevelUp => _expForLevel(userLevel + 1);
-  int get minExpForCurrentLevel => _expForLevel(userLevel);
-
-  double get progressFraction {
-    final required = maxExpForNextLevelUp - minExpForCurrentLevel;
-    final earned = userExperience - minExpForCurrentLevel;
-    if (required <= 0) return 1.0;
-    return earned / required;
+  Future<void> fetchUserAndItems() async {
+    final fetchedUser = await UserService().getProfile();
+    final fetchedItems = await ItemService(PocketB().pocketBase).getAllItems();
+    setState(() {
+      user = fetchedUser;
+      items = fetchedItems;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = allItems.where((item) {
-      final name = item["name"]?.toLowerCase() ?? "";
-      return name.contains(searchQuery.toLowerCase());
+    final filteredItems = items.where((item) {
+      return item.title.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
 
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.black, toolbarHeight: 0),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileSection(),
             _buildSearchBar(),
+            _buildPointIndicator(),
             _buildItemGrid(filteredItems),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildProfileSection() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      color: Colors.grey[200],
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 30,
-            backgroundImage: const AssetImage(
-              "assets/images/default_profile.png",
-            ),
-            backgroundColor: Colors.white,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "디스커버즈님!",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  "레벨 $userLevel",
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: progressFraction.clamp(0.0, 1.0),
-                  color: Colors.orange,
-                  backgroundColor: Colors.grey[300],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "EXP: ${_formatPoints(userExperience - minExpForCurrentLevel)} / ${_formatPoints(maxExpForNextLevelUp - minExpForCurrentLevel)}",
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.local_fire_department,
-                        color: Color.fromARGB(255, 225, 152, 57), size: 16),
-                    SizedBox(width: 4),
-                    Text("1.5x 부스터",
-                        style: TextStyle(fontSize: 13, color: Colors.black54)),
-                  ],
-                )
-              ],
-            ),
-          ),
-          Text(
-            "${_formatPoints(userPoints)} SP",
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-        ],
       ),
     );
   }
@@ -152,7 +75,21 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
-  Widget _buildItemGrid(List<Map<String, String>> items) {
+  Widget _buildPointIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      alignment: Alignment.centerRight,
+      child: Text(
+        "보유 포인트: ${_formatPoints(user?.points ?? 0)} SP",
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemGrid(List<Item> items) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -184,20 +121,22 @@ class _ShopPageState extends State<ShopPage> {
                     shape: BoxShape.circle,
                     color: Colors.white,
                   ),
-                  child: Image.asset(
-                    item["image"]!,
+                  child: Image.network(
+                    item.imageUrl,
                     fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.broken_image),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(item["name"] ?? "",
+                Text(item.title,
                     style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87)),
                 const SizedBox(height: 4),
                 Text(
-                  "${_formatPoints(int.parse(item["price"]!))} SP",
+                  "${_formatPoints(item.price)} SP",
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -211,24 +150,30 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
-  void _showPurchaseDialog(Map<String, String> item) {
-    final itemPrice = int.parse(item["price"]!);
-    final affordable = userPoints >= itemPrice;
+  void _showPurchaseDialog(Item item) {
+    final itemPrice = item.price;
+    final currentPoints = user?.points ?? 0;
+    final affordable = currentPoints >= itemPrice;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("${item["name"]} 구매"),
+          title: Text("${item.title} 구매"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(item["image"]!, width: 60, height: 60),
+              Image.network(
+                item.imageUrl,
+                width: 60,
+                height: 60,
+                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+              ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  item["description"] ?? "",
+                  item.description,
                   style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   textAlign: TextAlign.center,
                 ),
@@ -255,15 +200,15 @@ class _ShopPageState extends State<ShopPage> {
             ),
             TextButton(
               onPressed: affordable
-                  ? () {
-                      setState(() {
-                        userPoints -= itemPrice;
-                      });
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("${item["name"]} 구매 완료!")),
-                      );
-                    }
+                  ? () async {
+                final updated = await _processPurchase(item.price, item);
+                if (updated) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("${item.title} 구매 완료!")),
+                  );
+                }
+              }
                   : null,
               child: const Text("구매하기"),
             ),
@@ -273,8 +218,58 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
+  Future<bool> _processPurchase(int price, Item item) async {
+    final userId = user?.id;
+    if (userId == null) return false;
+
+    final currentPoints = user?.points ?? 0;
+    final newPoints = currentPoints - price;
+
+    final inventory = Map<String, dynamic>.from(user?.inventory ?? {});
+    final itemsList = List<Map<String, dynamic>>.from(inventory["items"] ?? []);
+
+    final now = DateTime.now().toUtc();
+    bool found = false;
+
+    for (var inv in itemsList) {
+      if (inv["id"] == item.id && inv["isUsed"] == false) {
+        inv["quantity"] = (inv["quantity"] ?? 1) + 1;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      itemsList.add({
+        "isUsed": false,
+        "id": item.id,
+        "quantity": 1,
+        "metadata": {
+          "purchasedTime": now.toIso8601String(),
+          "dueDate": DateTime(now.year, now.month + 1, now.day).toIso8601String(),
+          "expired": false,
+        }
+      });
+    }
+
+    inventory["items"] = itemsList;
+
+    final updated = await UserService().updateUserByID(userId, {
+      "points": newPoints,
+      "inventory": inventory,
+    });
+
+    setState(() {
+      user = updated;
+    });
+
+    return true;
+  }
+
   String _formatPoints(int points) {
     return points.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},');
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+    );
   }
 }
