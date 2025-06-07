@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:task_spark/data/friend.dart';
@@ -6,6 +10,7 @@ import '../data/user.dart';
 import '../util/pocket_base.dart';
 import '../util/secure_storage.dart';
 
+// 2025. 06. 07 : 유저 응답 결과 전체 반환 하게 변경
 class UserService {
   final PocketBase _pb = PocketB().pocketBase;
 
@@ -21,14 +26,31 @@ class UserService {
   Future<User> getUserByID(String userId) async {
     final token = await SecureStorage().storage.read(key: "accessToken");
 
-    final response = await _pb.send(
-      "/user",
-      method: "GET",
-      query: {"cid": userId},
-      headers: {"Authorization": "Bearer $token"},
-    );
+    // 인증 헤더 설정
+    _pb.authStore.save(token ?? '', null);
 
-    return User.fromJson(response);
+    try {
+      final record = await _pb.collection("users").getOne(
+        userId,
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print(record.toString());
+
+      return User.fromRecord(record);
+    } catch (e) {
+      print("유저 조회 실패: $e");
+      rethrow;
+    }
+  }
+
+  Future<User> getProfile() async {
+    final userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    return User.fromRecord(
+        await PocketB().pocketBase.collection("users").getOne(userID));
   }
 
   Future<User> getProfile() async {
@@ -74,14 +96,17 @@ class UserService {
       final userId = await SecureStorage().storage.read(key: "userID");
       final record = await _pb.collection("users").getOne(userId!);
       final currentExp = record.get<int>("exp");
+      final currentPoint = record.get<int>("points");
 
       await _pb.collection("users").update(userId, body: {
         "exp": currentExp + amount,
+        "points": currentPoint + amount,
       });
 
-      print("✅ 경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
+      print("경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
+      print("포인트 $amount 지급 완료 (총 point: ${currentPoint + amount})");
     } catch (e) {
-      print("❌ 경험치 지급 실패: $e");
+      print("경험치 지급 실패: $e");
     }
   }
 
@@ -200,5 +225,36 @@ class UserService {
     int level = convertExpToLevel(exp);
     int nextLevelExp = 50 * (level + 1) * (level + 1) + 100 * (level + 1);
     return nextLevelExp - exp;
+  }
+
+  Future<void> updateUserProfile({
+    required String userId,
+    required String name,
+    required String tag,
+    File? avatarFile,
+  }) async {
+    final updateBody = <String, dynamic>{
+      "name": name,
+      "tag": int.tryParse(tag),
+    };
+
+    if (avatarFile != null) {
+      final file = await http.MultipartFile.fromPath(
+        'avatar',
+        avatarFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      );
+
+      await _pb.collection('users').update(
+        userId,
+        body: updateBody,
+        files: [file], // 반드시 non-null 리스트로 전달
+      );
+    } else {
+      await _pb.collection('users').update(
+            userId,
+            body: updateBody,
+          );
+    }
   }
 }

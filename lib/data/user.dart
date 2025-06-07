@@ -1,5 +1,5 @@
-import 'package:pocketbase/pocketbase.dart';
 import 'dart:convert';
+import 'package:pocketbase/pocketbase.dart';
 
 class User {
   String? collectionId;
@@ -69,6 +69,8 @@ class User {
       emailVisibility: record.data["emailVisibility"] as bool?,
       verified: record.data["verified"] as bool?,
       name: record.data["name"] as String?,
+      nickname: record.data["nickname"] as String?,
+      tag: record.data["tag"] as int?,
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
       points: record.data["points"] as int?,

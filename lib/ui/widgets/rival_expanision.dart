@@ -60,6 +60,7 @@ class _RivalExpanisionState extends State<RivalExpanision> {
   }
 
   Future<void> loadUsers() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });

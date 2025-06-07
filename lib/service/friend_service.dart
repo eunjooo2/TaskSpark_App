@@ -1,4 +1,5 @@
 import 'package:task_spark/data/friend.dart';
+import 'package:task_spark/service/achievement_service.dart';
 import 'package:task_spark/util/pocket_base.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:task_spark/util/secure_storage.dart';
@@ -108,6 +109,7 @@ class FriendService {
       record = await sendFriendRequest(targetUserId);
     }
     record.data["isBlocked"] = true;
+    await AchievementService().updateMetaDataWithKey("block_friend", 1);
     await PocketB()
         .pocketBase
         .collection('friends')
