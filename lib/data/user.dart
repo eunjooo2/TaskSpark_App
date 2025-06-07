@@ -74,8 +74,6 @@ class User {
       avatar: record.data["avatar"] as String?,
       exp: record.data["exp"] as num?,
       points: record.data["points"] as int?,
-      nickname: record.data["nickname"] as String?,
-      tag: record.data["tag"] as int?,
       inventory: record.data["inventory"] as Map<String, dynamic>?,
       created: DateTime.tryParse(record.created),
       updated: DateTime.tryParse(record.updated),

@@ -17,6 +17,7 @@ class _ShopPageState extends State<ShopPage> {
   List<Item> items = [];
   String searchQuery = "";
   bool isLoading = true;
+  String _sortOption = "";
 
   @override
   void initState() {
@@ -75,7 +76,7 @@ class _ShopPageState extends State<ShopPage> {
             "https://pb.aroxu.me/api/files/_pb_users_auth_/${user!.id}/${user!.avatar}")
         : const AssetImage("assets/images/default_profile.png")
             as ImageProvider;
-    return isUserLoading
+    return isLoading
         ? Center(child: CircularProgressIndicator())
         : Container(
             padding: const EdgeInsets.all(12),
@@ -135,7 +136,7 @@ class _ShopPageState extends State<ShopPage> {
                   ),
                 ),
                 Text(
-                  "${_formatPoints(userPoints)} SP",
+                  "${_formatPoints(user!.points!)} SP",
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

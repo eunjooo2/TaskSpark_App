@@ -204,7 +204,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       ),
                     ),
                     currentAccountPicture: CircleAvatar(
-                      backgroundImage: NetworkImage(user.avatarUrl),
+                      backgroundImage: NetworkImage(user.avatar!),
                     ),
                   ),
                 ),

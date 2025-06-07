@@ -53,13 +53,6 @@ class UserService {
         await PocketB().pocketBase.collection("users").getOne(userID));
   }
 
-  Future<User> getProfile() async {
-    final userID = await SecureStorage().storage.read(key: "userID") ?? "";
-
-    return User.fromRecord(
-        await PocketB().pocketBase.collection("users").getOne(userID));
-  }
-
   /// 닉네임과 태그로 사용자 검색
   Future<SearchData> getUserByNicknameAndTag(String nickname, int? tag) async {
     final token = await SecureStorage().storage.read(key: "accessToken");
