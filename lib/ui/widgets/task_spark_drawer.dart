@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:task_spark/ui/pages/achievement_page.dart';
 import 'package:task_spark/data/user.dart';
+import 'package:task_spark/ui/pages/inventory_page.dart';
 import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/service/user_service.dart';
 
@@ -36,9 +37,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     return SizedBox(
       height: 6.h,
       child: FilledButton(
-        onPressed: () {
-          onPressed();
-        },
+        onPressed: () => onPressed(),
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
         ),
@@ -99,8 +98,9 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: isLoading == false
-          ? ListView(
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
               padding: EdgeInsets.zero,
               children: [
                 Theme(
@@ -115,26 +115,24 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     accountName: Text(
-                      user!.name ?? "",
+                      user.name ?? "",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                     accountEmail: Text(
-                      user!.email ?? "",
+                      user.email ?? "",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                     currentAccountPicture: CircleAvatar(
-                      backgroundImage:
-                          user!.avatar != null && user!.avatar!.isNotEmpty
-                              ? NetworkImage(
-                                  "https://pb.aroxu.me/${user!.avatar}",
-                                )
-                              : const AssetImage(
-                                  "assets/images/default_profile.png",
-                                ),
+                      backgroundImage: user.avatar != null &&
+                              user.avatar!.isNotEmpty
+                          ? NetworkImage("https://pb.aroxu.me/${user.avatar}")
+                          : const AssetImage(
+                                  "assets/images/default_profile.png")
+                              as ImageProvider,
                     ),
                   ),
                 ),
@@ -151,34 +149,48 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       _getDrawerIconRow(
                         FontAwesomeIcons.gifts,
                         "인벤토리",
-                        () {},
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => InventoryPage(),
+                            ),
+                          );
+                        },
                       ),
-                      _getDrawerIconRow(FontAwesomeIcons.medal, "업적", () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return AchievementPage(
-                                //임시(추후 수정)
-                                userValues: {
-                                  'make_task': 25,
-                                  'block_friend': 1,
-                                },
-                                nickname: user!.nickname ?? '익명',
-                                expRate: 0.0,
-                                myUser: user,
-                              );
-                            },
-                          ),
-                        );
-                      }),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.medal,
+                        "업적",
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return AchievementPage(
+                                  userValues: {
+                                    'make_task': 25,
+                                    'block_friend': 1,
+                                  },
+                                  nickname: user.nickname ?? '익명',
+                                  expRate: 0.0,
+                                  myUser: user,
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
                       _getDrawerIconRow(
                         FontAwesomeIcons.rightFromBracket,
                         "로그아웃",
                         () {},
                       ),
                       _buildDividerWithText("설정", context),
-                      _getDrawerIconRow(FontAwesomeIcons.gear, "앱 설정", () {}),
+                      _getDrawerIconRow(
+                        FontAwesomeIcons.gear,
+                        "앱 설정",
+                        () {},
+                      ),
                       _getDrawerIconRow(
                         FontAwesomeIcons.userLock,
                         "차단 친구 설정",
@@ -188,8 +200,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                   ),
                 ),
               ],
-            )
-          : const Center(child: CircularProgressIndicator()),
+            ),
     );
   }
 }
