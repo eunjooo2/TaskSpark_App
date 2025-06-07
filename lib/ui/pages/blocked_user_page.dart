@@ -69,12 +69,7 @@ class _BlockedUserPageState extends State<BlockedUserPage> {
       final targetUserId = getTargetUserId(friend);
       final record = await _friendService.getFriendByTargetID(targetUserId);
 
-      record.data["isBlocked"] = false;
-
-      await PocketB()
-          .pocketBase
-          .collection("friends")
-          .update(record.id, body: record.data);
+      await _friendService.rejectFriendRequest(record.id);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
