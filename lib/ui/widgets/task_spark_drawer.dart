@@ -34,6 +34,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   Future<void> fetchUser() async {
     final id = await SecureStorage().storage.read(key: "userID") ?? "";
     final fetchedUser = await UserService().getUserByID(id);
+    print(fetchedUser);
     setState(() {
       user = fetchedUser;
       isLoading = false;
@@ -116,7 +117,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     final currentExp = user.exp?.toInt() ?? 0;
     final currentLevel = UserService().convertExpToLevel(currentExp);
     final nextLevelExp =
-        50 * (currentLevel + 1) * (currentLevel + 1) + 100 * (currentLevel + 1);
+        UserService().experienceToNextLevel(currentExp) + currentExp;
     final currentLevelBaseExp =
         50 * currentLevel * currentLevel + 100 * currentLevel;
     final expIntoLevel = currentExp - currentLevelBaseExp;
@@ -141,7 +142,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                   const FaIcon(FontAwesomeIcons.coins,
                       size: 14, color: Colors.amber),
                   SizedBox(width: 1.w),
-                  Text("${user.points ?? 0}P",
+                  Text("${user.point ?? 0}P",
                       style: TextStyle(
                           fontSize: 0.5.cm,
                           fontWeight: FontWeight.bold,
@@ -192,7 +193,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     accountName: Text(
-                      "${user.name}#${user.tag}",
+                      "${user.nickname}#${user.tag}",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                       ),
@@ -204,7 +205,8 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       ),
                     ),
                     currentAccountPicture: CircleAvatar(
-                      backgroundImage: NetworkImage(user.avatar!),
+                      backgroundImage:
+                          NetworkImage("https://pb.aroxu.me/${user.avatar}"),
                     ),
                   ),
                 ),

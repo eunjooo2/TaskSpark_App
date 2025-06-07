@@ -25,6 +25,6 @@ class ShopService {
     final user = await UserService().getProfile();
     final item = await getItemById(id);
 
-    await UserService().updateUserPoints((user.points ?? 0) - item!.price);
+    await UserService().updateUserPoints((user.point ?? 0) - item!.price);
   }
 }

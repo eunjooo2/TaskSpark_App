@@ -229,6 +229,8 @@ class _FriendExpanisionState extends State<FriendExpanision> {
                         ? NetworkImage("https://pb.aroxu.me/${user.avatar!}")
                         : const AssetImage("assets/images/default_profile.png")
                             as ImageProvider;
+
+                    print(image);
                     if (widget.expanisionType == "normal") {
                       AwesomeDialog(
                         context: context,
