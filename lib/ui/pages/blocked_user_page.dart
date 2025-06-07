@@ -4,7 +4,6 @@ import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/service/user_service.dart';
 import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/data/user.dart';
-import 'package:task_spark/util/pocket_base.dart';
 
 // 2025. 06. 07 : 차단 친구 설정 화면 추가
 // - 차단 해제 적용 테스트 완료
