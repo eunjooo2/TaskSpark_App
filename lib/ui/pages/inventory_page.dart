@@ -4,7 +4,6 @@ import 'package:task_spark/data/user.dart';
 import 'package:task_spark/data/item.dart';
 import 'package:task_spark/service/item_service.dart';
 
-// 2025 .06 .07 : 아이템 페이지 추가
 class InventoryPage extends StatefulWidget {
   final User user;
 
@@ -26,7 +25,6 @@ class _InventoryPageState extends State<InventoryPage> {
   void initState() {
     super.initState();
     itemService = ItemService(pb);
-
     fetchInventory();
   }
 
@@ -99,15 +97,32 @@ class _InventoryPageState extends State<InventoryPage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundImage: item.image.isNotEmpty
-                                  ? NetworkImage(
-                                      getImageUrl(item.id, item.image))
-                                  : null,
-                              onBackgroundImageError: (_, __) =>
-                                  const Icon(Icons.image),
-                              backgroundColor: Colors.black26,
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: ClipOval(
+                                child: item.image.isNotEmpty
+                                    ? Container(
+                                        width: 70,
+                                        height: 70,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white,
+                                        ),
+                                        child: Image.network(
+                                          item.imageUrl,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(Icons.broken_image),
+                                        ),
+                                      )
+                                    : const Icon(Icons.image),
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

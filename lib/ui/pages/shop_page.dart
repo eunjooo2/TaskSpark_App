@@ -17,7 +17,7 @@ class _ShopPageState extends State<ShopPage> {
   List<Item> items = [];
   String searchQuery = "";
   bool isLoading = true;
-  String _sortOption = "";
+  String? _sortOption = "name";
 
   @override
   void initState() {
@@ -286,11 +286,21 @@ class _ShopPageState extends State<ShopPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.network(
-                item.imageUrl,
-                width: 60,
-                height: 60,
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+              Container(
+                width: 70,
+                height: 70,
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
               Padding(
