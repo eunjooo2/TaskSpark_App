@@ -1,12 +1,10 @@
 import 'package:task_spark/data/achievement.dart';
+import 'package:task_spark/service/user_service.dart';
 import 'package:task_spark/util/pocket_base.dart';
 
 class AchievementService {
   Future<List<Achievement>> getAchievementList() async {
-    return (await PocketB()
-            .pocketBase
-            .collection("achievement")
-            .getFullList(filter: "isHidden=false"))
+    return (await PocketB().pocketBase.collection("achievement").getFullList())
         .map((e) => Achievement.fromRecord(e))
         .toList();
   }
@@ -37,55 +35,75 @@ class AchievementService {
     return userValues;
   }
 
-  Future<void> upsertUserAchievement({
-    required String userId,
-    required String achievementId,
-    required String type,
-    required int valueToAdd,
-  }) async {
-    final pb = PocketB().pocketBase;
+  Future<List<String>> getAchieType() async {
+    return (await getAchievementList()).map((e) => e.type).toList();
+  }
 
-    // 기존 문서 존재 여부 확인 dd
-    final existing = await pb
-        .collection('user_achievement')
-        .getFirstListItem(
-          'user.id="$userId" && achievement.id="$achievementId"',
-          expand: 'achievement',
-        )
-        .catchError((e) => null); // 없을 경우 null 반환
+  Future<void> updateMetaDataWithKey(String key, int value) async {
+    final user = await UserService().getProfile();
+    final achievements = user.metadata?["achievements"];
 
-    if (existing == null) {
-      // 없으면 새로 생성
-      await pb.collection('user_achievement').create(body: {
-        "user": userId,
-        "achievement": achievementId,
-        "tier": "no_tier",
-        "isCompleted": false,
-        "isHidden": false,
-        "metadata": {
-          "type": type,
-          "currentValue": valueToAdd,
-        },
-      });
+    if (achievements != null) {
+      achievements[key] = achievements[key] + 1;
 
-      print('[업적 생성] $type → +$valueToAdd');
-    } else {
-      // 있으면 기존 metadata 값 업데이트
-      final metadata =
-          Map<String, dynamic>.from(existing.data["metadata"] ?? {});
-      final prevValue = metadata["currentValue"] ?? 0;
-      final newValue = prevValue + valueToAdd;
-
-      metadata["currentValue"] = newValue;
-
-      await pb.collection('user_achievement').update(
-        existing.id,
-        body: {
-          "metadata": metadata,
-        },
-      );
-
-      print('[업적 갱신] $type: $prevValue → $newValue');
+      user.metadata?['achievements'] = achievements;
     }
+
+    await PocketB().pocketBase.collection("users").update(user.id ?? "", body: {
+      "metadata": user.metadata,
+    });
+  }
+
+  Future<Map<String, int>> getCurrentMetaData() async {
+    final user = await UserService().getProfile();
+
+    final dynamic rawAchievements = user.metadata?["achievements"];
+    return Map<String, int>.from(rawAchievements);
+  }
+
+  int getCurrentTierIndex(
+      Map<String, int> userValues, Achievement achievement) {
+    final currentValue = userValues[achievement.type] ?? 0;
+    final bronzeValue = achievement.amount["bronze"] ?? 0;
+    final silverValue = achievement.amount["silver"] ?? 0;
+    final goldValue = achievement.amount["gold"] ?? 0;
+    final platinumValue = achievement.amount["platinum"] ?? 0;
+    final diamondValue = achievement.amount["diamond"] ?? 0;
+
+    if (achievement.isOnce == true) {
+      if (currentValue < diamondValue) {
+        return 0;
+      } else {
+        return 5;
+      }
+    }
+
+    if (currentValue < bronzeValue) {
+      return 0;
+    } else if (currentValue < silverValue) {
+      return 1; // hehe
+    } else if (currentValue < goldValue) {
+      return 2;
+    } else if (currentValue < platinumValue) {
+      return 3;
+    } else if (currentValue < diamondValue) {
+      return 4;
+    } else {
+      return 5;
+    }
+  }
+
+  double getProgress(Map<String, int> userValues, Achievement achievement) {
+    final currentValue = userValues[achievement.type] ?? 0;
+    if (achievement.isOnce == true) {
+      if (currentValue >= achievement.amount["diamond"]!) {
+        return 1.0;
+      } else {
+        return 0;
+      }
+    }
+    return (double.parse(currentValue.toString()) -
+            achievement.amount["bronze"]!) /
+        achievement.amount["diamond"]!;
   }
 }

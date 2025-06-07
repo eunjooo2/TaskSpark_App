@@ -76,7 +76,7 @@ class TaskService {
 
   /// 완료된 반복 할 일을 처리하고 보상을 지급합니다.
   Future<void> handleTaskCompletion(Task task) async {
-    // ✅ 경험치 계산: 우선순위 × 10
+    //  경험치 계산: 우선순위 × 10
     final priority = int.tryParse(task.priority ?? "3") ?? 3;
     final exp = priority * 10;
 
@@ -98,8 +98,65 @@ class TaskService {
         await createTask(newTask);
       }
     }
+    // 할 일 완료 상태
+    await toggleDone(task);
+  }
 
-    // 원래 작업 삭제
-    await deleteTask(task.id!);
+  Future<List<Task>> _getTasks(String userID) async {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 9)); // 한국 시간
+    final today = DateTime(now.year, now.month, now.day); // 오늘 날짜만
+
+    final allTasks = await pb.collection("tasks").getFullList(
+          filter: "owner.id='$userID'",
+        );
+
+    List<Task> todayTasks = [];
+
+    for (final record in allTasks) {
+      final task = Task.fromRecord(record);
+
+      if (task.isRepeatingTask == true) {
+        // 반복 작업 처리
+        final start = task.startDate?.toUtc();
+        final period = int.tryParse(task.repeatPeriod ?? "0") ?? 0;
+
+        if (start == null || period <= 0) continue;
+
+        final daysDiff = today
+            .difference(
+              DateTime(start.year, start.month, start.day),
+            )
+            .inDays;
+
+        if (daysDiff >= 0 && daysDiff % period == 0) {
+          todayTasks.add(task);
+        }
+      } else {
+        // 일반 작업 처리
+        final end = task.endDate?.toUtc();
+        if (end == null) continue;
+
+        final endDateOnly = DateTime(end.year, end.month, end.day);
+        if (endDateOnly == today) {
+          todayTasks.add(task);
+        }
+      }
+    }
+
+    return todayTasks;
+  }
+
+  Future<int> getTaskGoalCount(String userID) async {
+    final tasks = await _getTasks(userID);
+    return tasks.length;
+  }
+
+  Future<int> getTaskDoneCount(String userID) async {
+    final tasks = await _getTasks(userID);
+    return tasks.where((task) => task.isDone == true).length;
+  }
+
+  Future<bool> todayDone(String userID) async {
+    return await getTaskDoneCount(userID) == await getTaskGoalCount(userID);
   }
 }
