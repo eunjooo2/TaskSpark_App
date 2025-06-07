@@ -22,28 +22,14 @@ class UserService {
         );
   }
 
-  /// 사용자 ID로 유저 정보 조회
-  Future<User> getUserByID(String userId) async {
-    final token = await SecureStorage().storage.read(key: "accessToken");
-
-    // 인증 헤더 설정
-    _pb.authStore.save(token ?? '', null);
-
-    try {
-      final record = await _pb.collection("users").getOne(
-        userId,
-        headers: {
-          "Authorization": "Bearer $token",
-        },
-      );
-
-      print(record.toString());
-
-      return User.fromRecord(record);
-    } catch (e) {
-      print("유저 조회 실패: $e");
-      rethrow;
-    }
+  // 변경 절대 금지 (API로 요청해야 Social NetWork Image 불러워져요, PocketBase로 접근하면 먹통됩니다.)
+  Future<User> getUserByID(String userID) async {
+    final accessToken = await SecureStorage().storage.read(key: "accessToken");
+    final response = await PocketB().pocketBase.send("/user",
+        method: "GET",
+        query: {"cid": userID},
+        headers: {"Authorization": "Bearer $accessToken"});
+    return User.fromJson(response);
   }
 
   Future<User> getProfile() async {
@@ -163,11 +149,9 @@ class UserService {
       );
     } else {
       await _pb.collection('users').update(
-        userId,
-        body: updateBody,
-      );
+            userId,
+            body: updateBody,
+          );
     }
   }
-
-
 }

@@ -32,9 +32,8 @@ class _BlockedUserPageState extends State<BlockedUserPage> {
     myUserId = await SecureStorage().storage.read(key: "userID") ?? "";
 
     final friends = await _friendService.getFriendList();
-    final onlyBlocked = friends
-        .where((f) => f.status == FriendRequestStatus.blocked)
-        .toList();
+    final onlyBlocked =
+        friends.where((f) => f.status == FriendRequestStatus.blocked).toList();
 
     setState(() {
       blockedList = onlyBlocked;
@@ -113,7 +112,7 @@ class _BlockedUserPageState extends State<BlockedUserPage> {
             backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
                 ? NetworkImage("https://pb.aroxu.me/${user.avatar}")
                 : const AssetImage("assets/images/default_profile.png")
-            as ImageProvider,
+                    as ImageProvider,
           ),
           title: Text("${user.nickname ?? '알 수 없음'}#${user.tag ?? '0000'}"),
           subtitle: Text("ID: ${user.id}"),
@@ -135,13 +134,13 @@ class _BlockedUserPageState extends State<BlockedUserPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : blockedList.isEmpty
-          ? const Center(child: Text("차단된 친구가 없습니다."))
-          : ListView.builder(
-        itemCount: blockedList.length,
-        itemBuilder: (context, index) {
-          return buildBlockedUserTile(blockedList[index]);
-        },
-      ),
+              ? const Center(child: Text("차단된 친구가 없습니다."))
+              : ListView.builder(
+                  itemCount: blockedList.length,
+                  itemBuilder: (context, index) {
+                    return buildBlockedUserTile(blockedList[index]);
+                  },
+                ),
     );
   }
 }

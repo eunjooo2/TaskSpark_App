@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:task_spark/data/user.dart';
 import 'package:task_spark/data/achievement.dart';
 import 'package:task_spark/service/achievement_service.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
 class AchievementPage extends StatefulWidget {
   final String nickname;

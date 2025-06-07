@@ -45,14 +45,14 @@ class _ShopPageState extends State<ShopPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildPointIndicator(),
-            _buildItemGrid(filteredItems),
-          ],
-        ),
-      ),
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildPointIndicator(),
+                  _buildItemGrid(filteredItems),
+                ],
+              ),
+            ),
     );
   }
 
@@ -80,7 +80,7 @@ class _ShopPageState extends State<ShopPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       alignment: Alignment.centerRight,
       child: Text(
-        "보유 포인트: ${_formatPoints(user?.points ?? 0)} SP",
+        "보유 포인트: ${_formatPoints(user?.point ?? 0)} SP",
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
@@ -125,7 +125,7 @@ class _ShopPageState extends State<ShopPage> {
                     item.imageUrl,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image),
+                        const Icon(Icons.broken_image),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -152,7 +152,7 @@ class _ShopPageState extends State<ShopPage> {
 
   void _showPurchaseDialog(Item item) {
     final itemPrice = item.price;
-    final currentPoints = user?.points ?? 0;
+    final currentPoints = user?.point ?? 0;
     final affordable = currentPoints >= itemPrice;
 
     showDialog(
@@ -201,14 +201,14 @@ class _ShopPageState extends State<ShopPage> {
             TextButton(
               onPressed: affordable
                   ? () async {
-                final updated = await _processPurchase(item.price, item);
-                if (updated) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("${item.title} 구매 완료!")),
-                  );
-                }
-              }
+                      final updated = await _processPurchase(item.price, item);
+                      if (updated) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("${item.title} 구매 완료!")),
+                        );
+                      }
+                    }
                   : null,
               child: const Text("구매하기"),
             ),
@@ -222,7 +222,7 @@ class _ShopPageState extends State<ShopPage> {
     final userId = user?.id;
     if (userId == null) return false;
 
-    final currentPoints = user?.points ?? 0;
+    final currentPoints = user?.point ?? 0;
     final newPoints = currentPoints - price;
 
     final inventory = Map<String, dynamic>.from(user?.inventory ?? {});
@@ -246,7 +246,8 @@ class _ShopPageState extends State<ShopPage> {
         "quantity": 1,
         "metadata": {
           "purchasedTime": now.toIso8601String(),
-          "dueDate": DateTime(now.year, now.month + 1, now.day).toIso8601String(),
+          "dueDate":
+              DateTime(now.year, now.month + 1, now.day).toIso8601String(),
           "expired": false,
         }
       });
@@ -268,8 +269,8 @@ class _ShopPageState extends State<ShopPage> {
 
   String _formatPoints(int points) {
     return points.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]},',
-    );
+        );
   }
 }
