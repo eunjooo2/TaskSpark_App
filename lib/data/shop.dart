@@ -1,12 +1,3 @@
-/*
-{
-    "image": "assets/images/q.png",
-    "name": "방어권",
-    "description": "할 일을 못해서 받는 불이익 방어하기",
-    "price": "300",
-  },
-*/
-
 import 'package:pocketbase/pocketbase.dart';
 
 class Shop {

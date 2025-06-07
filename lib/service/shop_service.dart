@@ -1,4 +1,3 @@
-import 'package:pocketbase/pocketbase.dart';
 import 'package:task_spark/service/user_service.dart';
 import 'package:task_spark/util/pocket_base.dart';
 import '../data/shop.dart';
