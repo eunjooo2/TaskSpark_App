@@ -174,8 +174,6 @@ class TaskService {
       }
     }
 
-    await deleteTask(task.id!);
-    // 할 일 완료 상태
     await toggleDone(task);
   }
 

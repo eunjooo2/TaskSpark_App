@@ -7,6 +7,7 @@ import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/data/rival.dart';
 import 'package:task_spark/service/achievement_service.dart';
+import 'package:task_spark/data/rival.dart';
 
 class RivalService {
   Future<RivalRequest> sendRivalRequest(
@@ -134,13 +135,11 @@ class RivalService {
   Future<void> checkRivalVictory(RivalRequest request) async {
     final userID = await SecureStorage().storage.read(key: "userID") ?? "";
 
-    // 승자인 경우에만 업적 증가
-    if ((request.result == RivalRequestStatus.sender_win &&
-            request.senderID == userID) ||
-        (request.result == RivalRequestStatus.receiver_win &&
-            request.friendID == userID)) {
-      await AchievementService().updateMetaDataWithKey("rival_win", 1);
-      print("[업적] rival_win +1");
+    if (request.metadata["result"] != null) {
+      if (request.metadata["result"]["winner"] == userID) {
+        await AchievementService().updateMetaDataWithKey("rival_win", 1);
+        print("[업적] rival_win +1");
+      }
     }
   }
 
