@@ -135,13 +135,9 @@ class RivalService {
     final userID = await SecureStorage().storage.read(key: "userID") ?? "";
 
     // 승자인 경우에만 업적 증가
-    if ((request.result == RivalRequestStatus.sender_win &&
-            request.senderID == userID) ||
-        (request.result == RivalRequestStatus.receiver_win &&
-            request.friendID == userID)) {
-      await AchievementService().updateMetaDataWithKey("rival_win", 1);
-      print("[업적] rival_win +1");
-    }
+
+    await AchievementService().updateMetaDataWithKey("rival_win", 1);
+    print("[업적] rival_win +1");
   }
 
 // 라이벌 도전 수락 후, 기존에 보냈던 도전 요청들을 삭제

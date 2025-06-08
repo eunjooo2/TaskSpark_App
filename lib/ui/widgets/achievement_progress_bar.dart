@@ -1,19 +1,15 @@
-// achievement_progress_bar.dart
-// 업적 등급별 색상 구간별로 진행률을 나눠서 표현하는 커스텀 게이지바 위젯
-// currentProgress는 현재 등급 구간에서의 진행률 (0.0~1.0)
-
 import 'package:flutter/material.dart';
 
 class AchievementProgressBar extends StatelessWidget {
-  final int currentTierIndex; // 1부터 시작하는 등급 인덱스 (0은 등급 없음)
-  final double currentProgress; // 현재 등급에서의 진행률 (0.0 ~ 1.0)
-  final int totalTiers; // 등급 총 개수 (보통 5)
+  final List<int> tierAmounts;
+  final int userValue;
+  final bool isOnce;
 
   const AchievementProgressBar({
     super.key,
-    required this.currentTierIndex,
-    required this.currentProgress,
-    this.totalTiers = 5,
+    required this.tierAmounts,
+    required this.userValue,
+    this.isOnce = false,
   });
 
   @override
@@ -34,11 +30,46 @@ class AchievementProgressBar extends StatelessWidget {
       const Color.fromARGB(255, 201, 255, 255),
     ];
 
-    final int adjustedTierIndex =
-        (currentTierIndex - 1).clamp(0, totalTiers - 1);
+    if (isOnce) {
+      final bool isCompleted = userValue > 0;
+      return Container(
+        height: 8,
+        decoration: BoxDecoration(
+          color: lightColors.last,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: FractionallySizedBox(
+          widthFactor: isCompleted ? 1.0 : 0.0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: strongColors.last,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 일반 업적
+    final List<int> thresholds = [0];
+    for (final amount in tierAmounts) {
+      thresholds.add(thresholds.last + amount);
+    }
 
     return Row(
-      children: List.generate(totalTiers, (i) {
+      children: List.generate(5, (i) {
+        final int start = thresholds[i];
+        final int end = thresholds[i + 1];
+        double segmentProgress = 0.0;
+
+        if (userValue <= start) {
+          segmentProgress = 0.0;
+        } else if (userValue >= end) {
+          segmentProgress = 1.0;
+        } else {
+          segmentProgress = (userValue - start) / (end - start);
+        }
+
         return Expanded(
           flex: 1,
           child: Stack(
@@ -49,43 +80,28 @@ class AchievementProgressBar extends StatelessWidget {
                   color: lightColors[i],
                   borderRadius: i == 0
                       ? const BorderRadius.horizontal(left: Radius.circular(4))
-                      : i == totalTiers - 1
+                      : i == 4
                           ? const BorderRadius.horizontal(
                               right: Radius.circular(4))
                           : BorderRadius.zero,
                 ),
               ),
-              if (i < adjustedTierIndex)
-                Container(
+              FractionallySizedBox(
+                widthFactor: segmentProgress.clamp(0.0, 1.0),
+                child: Container(
                   height: 8,
                   decoration: BoxDecoration(
                     color: strongColors[i],
                     borderRadius: i == 0
                         ? const BorderRadius.horizontal(
                             left: Radius.circular(4))
-                        : i == totalTiers - 1
+                        : i == 4
                             ? const BorderRadius.horizontal(
                                 right: Radius.circular(4))
                             : BorderRadius.zero,
                   ),
-                )
-              else if (i == adjustedTierIndex)
-                FractionallySizedBox(
-                  widthFactor: currentProgress.clamp(0.0, 1.0),
-                  child: Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: strongColors[i],
-                      borderRadius: i == 0
-                          ? const BorderRadius.horizontal(
-                              left: Radius.circular(4))
-                          : i == totalTiers - 1
-                              ? const BorderRadius.horizontal(
-                                  right: Radius.circular(4))
-                              : BorderRadius.zero,
-                    ),
-                  ),
                 ),
+              ),
             ],
           ),
         );

@@ -1,8 +1,3 @@
-// achievement_tile.dart
-// 업적 하나를 리스트에 보여주는 UI 컴포넌트.
-// 트로피 아이콘, 등급, 설명, 진행률, 게이지바 포함.
-// 잠긴 업적은 ???로 표시하며, 터치 시 힌트 다이얼로그 호출 콜백 가능.
-
 import 'package:flutter/material.dart';
 import 'package:task_spark/data/achievement.dart';
 import 'package:task_spark/ui/widgets/achievement_progress_bar.dart';
@@ -41,6 +36,17 @@ class AchievementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 등급 순서 고정
+    final List<String> tierOrder = [
+      'bronze',
+      'silver',
+      'gold',
+      'platinum',
+      'diamond',
+    ];
+    final List<int> tierAmounts =
+        tierOrder.map((t) => achievement.amount[t] ?? 0).toList();
+
     int tierIndex;
     double progress;
 
@@ -51,8 +57,18 @@ class AchievementTile extends StatelessWidget {
       progress = achieved ? 1.0 : 0.0;
     } else {
       tierIndex = getTierIndex(achievement.amount, currentValue);
-      progress =
-          getProgressPercent(currentValue, achievement.amount, tierIndex);
+
+      if (tierIndex >= 5 || tierIndex >= tierOrder.length - 1) {
+        progress = 1.0;
+      } else {
+        final currentTierKey = tierOrder[tierIndex];
+        final nextTierKey = tierOrder[tierIndex + 1];
+        final currentRequired = achievement.amount[currentTierKey] ?? 0;
+        final nextRequired = achievement.amount[nextTierKey] ?? 0;
+        final span = nextRequired - currentRequired;
+        final filled = currentValue - currentRequired;
+        progress = span > 0 ? (filled / span).clamp(0.0, 1.0) : 0.0;
+      }
     }
 
     final tierName = getTierNameKor(tierIndex);
@@ -71,11 +87,9 @@ class AchievementTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
             color: isHiddenUnlocked
-                ? Colors.cyanAccent
-                : isOnceUnlocked
-                    ? Colors.purpleAccent
-                    : Colors.transparent,
-            width: 2,
+                ? Color.fromARGB(255, 221, 0, 255)
+                : _getTierColorByIndex(tierIndex),
+            width: tierIndex == 0 ? 0 : 2,
           ),
         ),
         elevation: 3,
@@ -126,8 +140,9 @@ class AchievementTile extends StatelessWidget {
                     if ((tierIndex > 0 && !achievement.isOnce) ||
                         (achievement.isOnce && tierIndex == 5))
                       AchievementProgressBar(
-                        currentTierIndex: tierIndex,
-                        currentProgress: progress,
+                        tierAmounts: tierAmounts,
+                        userValue: currentValue,
+                        isOnce: achievement.isOnce,
                       ),
                     const SizedBox(height: 4),
                     if (isUnlocked || (achievement.isOnce && tierIndex == 5))
