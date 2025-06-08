@@ -98,7 +98,9 @@ class _TaskPageState extends State<TaskPage> {
 
   void _showSnackBar(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        content: Text(msg)));
   }
 
   Future<void> _handleToggleDone(Task task) async {

@@ -112,7 +112,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        content: Text(msg)));
   }
 
   @override

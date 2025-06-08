@@ -254,21 +254,6 @@ class _ShopPageState extends State<ShopPage> {
               onPressed: () => Navigator.pop(context),
               child: const Text("취소"),
             ),
-            // 수정 전 >>>
-            // TextButton(
-            //   onPressed: affordable
-            //       ? () {
-            //           setState(() {
-            //             userPoints -= itemPrice;
-            //           });
-            //           Navigator.pop(context);
-            //           ScaffoldMessenger.of(context).showSnackBar(
-            //             SnackBar(content: Text("${item["name"]} 구매 완료!")),
-            //           );
-            //         }
-            //       : null,
-            //   child: const Text("구매하기"),
-            // ),
             TextButton(
               onPressed: affordable
                   ? () async {
@@ -279,7 +264,10 @@ class _ShopPageState extends State<ShopPage> {
                             .updateMetaDataWithKey("buy_item", 1);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("${item.title} 구매 완료!")),
+                          SnackBar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              content: Text("${item.title} 구매 완료!")),
                         );
                       }
                     }
@@ -312,7 +300,9 @@ class _ShopPageState extends State<ShopPage> {
 
       if (defenseItemCount >= 2) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("방어권은 2개 이상 구매할 수 없습니다.")),
+          SnackBar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              content: Text("방어권은 2개 이상 구매할 수 없습니다.")),
         );
         return false;
       }

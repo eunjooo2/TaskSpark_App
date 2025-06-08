@@ -11,7 +11,6 @@ import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/main.dart';
 import 'package:task_spark/service/rival_service.dart';
 import 'package:task_spark/service/user_service.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});

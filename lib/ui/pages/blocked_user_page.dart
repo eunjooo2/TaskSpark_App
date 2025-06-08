@@ -72,7 +72,8 @@ class _BlockedUserPageState extends State<BlockedUserPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
           content: Text("차단 해제 완료"),
           duration: Duration(seconds: 2),
         ),
