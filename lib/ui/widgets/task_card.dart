@@ -25,7 +25,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = DateTime.now().add(Duration(hours: 9));
     final isFutureTask = task.startDate != null && task.startDate!.isAfter(now);
     final start = formatDateTime(task.startDate);
     final end = formatDateTime(task.endDate);

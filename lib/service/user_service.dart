@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:task_spark/data/friend.dart';
@@ -7,6 +11,7 @@ import '../util/secure_storage.dart';
 import 'package:task_spark/service/achievement_service.dart'; //  업적 연동용
 import 'package:intl/intl.dart';
 
+// 2025. 06. 07 : 유저 응답 결과 전체 반환 하게 변경
 class UserService {
   final PocketBase _pb = PocketB().pocketBase;
 
@@ -18,17 +23,13 @@ class UserService {
         );
   }
 
-  /// 사용자 ID로 유저 정보 조회
-  Future<User> getUserByID(String userId) async {
-    final token = await SecureStorage().storage.read(key: "accessToken");
-
-    final response = await _pb.send(
-      "/user",
-      method: "GET",
-      query: {"cid": userId},
-      headers: {"Authorization": "Bearer $token"},
-    );
-
+  // 변경 절대 금지 (API로 요청해야 Social NetWork Image 불러워져요, PocketBase로 접근하면 먹통됩니다.)
+  Future<User> getUserByID(String userID) async {
+    final accessToken = await SecureStorage().storage.read(key: "accessToken");
+    final response = await PocketB().pocketBase.send("/user",
+        method: "GET",
+        query: {"cid": userID},
+        headers: {"Authorization": "Bearer $accessToken"});
     return User.fromJson(response);
   }
 
@@ -85,61 +86,78 @@ class UserService {
       final record = await _pb.collection("users").getOne(userId!);
 
       final currentExp = record.get<int>("exp");
-      final currentLevel = record.get<int>("level") ?? 1;
-      final metadata = Map<String, dynamic>.from(record.data['metadata'] ?? {});
-
-      final newExp = currentExp + amount;
-      final newLevel = convertExpToLevel(newExp);
-
-      metadata['exp'] = newExp;
-      metadata['level'] = newLevel;
+      final currentPoint = record.get<int>("point");
 
       await _pb.collection("users").update(userId, body: {
-        "exp": newExp,
-        "metadata": metadata,
+        "exp": currentExp + amount,
+        "point": currentPoint + amount,
       });
 
-      print("경험치 $amount 지급 완료 (총 XP: $newExp, 레벨: $newLevel)");
-
-      // ✅ 레벨 업 업적 반영
-      if (newLevel > currentLevel) {
-        await AchievementService().updateMetaDataWithKey("level_up", 1);
-        print("🎉 레벨 업! level_up 업적 +1");
-      }
+      print("경험치 $amount 지급 완료 (총 XP: ${currentExp + amount})");
+      print("포인트 $amount 지급 완료 (총 point: ${currentPoint + amount})");
     } catch (e) {
       print("경험치 지급 실패: $e");
     }
   }
 
-  /// # 유저 객체에 exp/level 반영 후 서버에 업데이트 + 업적 연동
-  Future<void> updateExpAndLevel(User user) async {
-    final exp = user.exp ?? 0;
-    final prevLevel = user.metadata?['level'] ?? 1;
-    final newLevel = convertExpToLevel(exp);
-
-    user.metadata ??= {};
-    user.metadata!['exp'] = exp;
-    user.metadata!['level'] = newLevel;
-
+  /// 포인트 차감 / 업데이트
+  Future<void> updateUserPoints(int newPoints) async {
     try {
-      await _pb.collection("users").update(user.id!, body: {
-        "exp": exp,
-        "metadata": user.metadata,
+      final userId = await SecureStorage().storage.read(key: "userID");
+      if (userId == null || userId.isEmpty) {
+        throw Exception("유저 ID를 찾을 수 없습니다.");
+      }
+
+      await _pb.collection("users").update(userId, body: {
+        "point": newPoints,
       });
 
-      print("업데이트 완료: exp=$exp, level=$newLevel");
-
-      // ✅ 레벨 업 업적 반영
-      if (newLevel > prevLevel) {
-        await AchievementService().updateMetaDataWithKey("level_up", 1);
-        print("🎉 레벨 업! level_up 업적 +1");
-      }
+      print("✅ 포인트 업데이트 완료: $newPoints SP");
     } catch (e) {
-      print("업데이트 실패: $e");
+      print("❌ 포인트 업데이트 실패: $e");
     }
   }
 
-  /// 친구 요청 내/상대 ID 구분
+  /// 🔹 [새로 추가됨] 인벤토리 아이템 사용 (itemId 기반)
+  Future<bool> useInventoryItemById(String itemId) async {
+    try {
+      await _pb.collection("inventory").update(itemId, body: {
+        "used": true, // 또는 상태 변경 (예: 상태값 'used'로 바꾸기)
+      });
+      print("✅ 아이템 사용 완료 (ID: $itemId)");
+      return true;
+    } catch (e) {
+      print("❌ 아이템 사용 실패: $e");
+      return false;
+    }
+  }
+
+  /// 기존 방식: 인벤토리에서 아이템 이름 기반 삭제
+  Future<bool> useItem(String userId, String itemName) async {
+    try {
+      final record = await _pb.collection("users").getOne(userId);
+      final currentInventory = List<String>.from(record.get("inventory") ?? []);
+
+      if (!currentInventory.contains(itemName)) {
+        throw Exception("아이템이 인벤토리에 없습니다.");
+      }
+
+      currentInventory.remove(itemName);
+
+      await _pb.collection("users").update(userId, body: {
+        "inventory": currentInventory,
+      });
+
+      print("✅ $itemName 아이템 사용 완료");
+      return true;
+    } catch (e) {
+      print("❌ 아이템 사용 실패: $e");
+
+      rethrow;
+    }
+  }
+
+  /// 친구 요청에서 상대 유저 ID 반환
   Future<String> getOtherUserID(FriendRequest request) async {
     String? myUserID = await SecureStorage().storage.read(key: "userID");
     if (request.senderId == myUserID) {
@@ -149,7 +167,29 @@ class UserService {
     }
   }
 
-  /// 경험치 → 레벨 변환 함수
+  /// 닉네임+태그 검색 (오타 수정 포함)
+  Future<SearchData> getUserByNickanemAndTag(String nickname, int? tag) async {
+    final accessToken = await SecureStorage().storage.read(key: "accessToken");
+    Map<String, dynamic> query = {"nickname": nickname};
+    if (tag != null) {
+      query["tag"] = tag;
+    }
+
+    final response = await PocketB().pocketBase.send("/user/search",
+        method: "GET",
+        query: query,
+        headers: {"Authorization": "Bearer $accessToken"});
+
+    return SearchData.fromJson(response);
+  }
+
+  /// 인벤토리 가져오기
+  Future<Map<String, dynamic>?> getUserInventory() async {
+    final user = await getProfile();
+    return user.inventory;
+  }
+
+  /// 경험치를 기준으로 현재 레벨 계산
   int convertExpToLevel(num exp) {
     int low = 0;
     int high = 1000;
@@ -175,6 +215,47 @@ class UserService {
     int level = convertExpToLevel(exp);
     int nextLevelExp = 50 * (level + 1) * (level + 1) + 100 * (level + 1);
     return nextLevelExp - exp;
+  }
+
+  Future<void> updateUserProfile({
+    required String userId,
+    required String name,
+    required String tag,
+    File? avatarFile,
+  }) async {
+    final updateBody = <String, dynamic>{
+      "name": name,
+      "tag": int.tryParse(tag),
+    };
+
+    if (avatarFile != null) {
+      final file = await http.MultipartFile.fromPath(
+        'avatar',
+        avatarFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      );
+
+      await _pb.collection('users').update(
+        userId,
+        body: updateBody,
+        files: [file], // 반드시 non-null 리스트로 전달
+      );
+    } else {
+      await _pb.collection('users').update(
+            userId,
+            body: updateBody,
+          );
+    }
+  }
+
+  Future<User> updateInventory(
+      String userId, List<Map<String, dynamic>> items) async {
+    final response =
+        await PocketB().pocketBase.collection("users").update(userId, body: {
+      "inventory": {"items": items}
+    });
+
+    return User.fromRecord(response);
   }
 
   /// 로그인 연속 스트릭 처리

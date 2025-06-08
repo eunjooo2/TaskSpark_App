@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:task_spark/data/item.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/service/user_service.dart';
+import 'package:task_spark/util/pocket_base.dart';
+import 'package:task_spark/service/item_service.dart';
 import 'package:task_spark/service/achievement_service.dart';
-import '../../data/static/shop_item_data.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({super.key});
@@ -10,149 +14,128 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  int userPoints = 10000;
-  int userExperience = 50000;
-  int userLevel = 0;
+  User? user;
+  List<Item> items = [];
   String searchQuery = "";
+  bool isLoading = true;
+  String? _sortOption = "name";
 
   @override
   void initState() {
     super.initState();
-    _updateUserLevel();
+    fetchUserAndItems();
   }
 
-  int _expForLevel(int level) {
-    if (level <= 0) return 0;
-    return 50 * level * level + 100 * level;
-  }
-
-  void _updateUserLevel() {
-    int calculatedLevel = 0;
-    while (userExperience >= _expForLevel(calculatedLevel + 1)) {
-      calculatedLevel++;
-    }
-    if (userLevel != calculatedLevel) {
-      setState(() {
-        userLevel = calculatedLevel;
-      });
-    }
-  }
-
-  int get maxExpForNextLevelUp => _expForLevel(userLevel + 1);
-  int get minExpForCurrentLevel => _expForLevel(userLevel);
-
-  double get progressFraction {
-    final required = maxExpForNextLevelUp - minExpForCurrentLevel;
-    final earned = userExperience - minExpForCurrentLevel;
-    if (required <= 0) return 1.0;
-    return earned / required;
+  Future<void> fetchUserAndItems() async {
+    final fetchedUser = await UserService().getProfile();
+    final fetchedItems = await ItemService(PocketB().pocketBase).getAllItems();
+    setState(() {
+      user = fetchedUser;
+      items = fetchedItems;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = allItems.where((item) {
-      final name = item["name"]?.toLowerCase() ?? "";
-      return name.contains(searchQuery.toLowerCase());
+    final filteredItems = items.where((item) {
+      return item.title.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
+
+    filteredItems.sort((a, b) {
+      switch (_sortOption) {
+        case 'price_asc':
+          return a.price.compareTo(b.price);
+        case 'price_desc':
+          return b.price.compareTo(a.price);
+        case 'name':
+        default:
+          return a.title.compareTo(b.title);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.black, toolbarHeight: 0),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildProfileSection(),
-            _buildSearchBar(),
-            _buildItemGrid(filteredItems),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileSection() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      color: Colors.grey[200],
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 30,
-            backgroundImage: const AssetImage(
-              "assets/images/default_profile.png",
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildPointIndicator(),
+                  _buildItemGrid(filteredItems),
+                ],
+              ),
             ),
-            backgroundColor: Colors.white,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "디스커버즈님!",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  "레벨 $userLevel",
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: progressFraction.clamp(0.0, 1.0),
-                  color: Colors.orange,
-                  backgroundColor: Colors.grey[300],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "EXP: ${_formatPoints(userExperience - minExpForCurrentLevel)} / ${_formatPoints(maxExpForNextLevelUp - minExpForCurrentLevel)}",
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.local_fire_department,
-                        color: Color.fromARGB(255, 225, 152, 57), size: 16),
-                    SizedBox(width: 4),
-                    Text("1.5x 부스터",
-                        style: TextStyle(fontSize: 13, color: Colors.black54)),
-                  ],
-                )
-              ],
-            ),
-          ),
-          Text(
-            "${_formatPoints(userPoints)} SP",
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: '아이템 검색...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-        ),
-        onChanged: (value) {
-          setState(() {
-            searchQuery = value;
-          });
-        },
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: '아이템 검색...',
+                prefixIcon: const Icon(Icons.search),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text("정렬: "),
+          DropdownButton<String>(
+            value: _sortOption,
+            items: const [
+              DropdownMenuItem(
+                value: 'name',
+                child: Text("이름순"),
+              ),
+              DropdownMenuItem(
+                value: 'price_asc',
+                child: Text("가격 낮은순"),
+              ),
+              DropdownMenuItem(
+                value: 'price_desc',
+                child: Text("가격 높은순"),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _sortOption = value!;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildItemGrid(List<Map<String, String>> items) {
+  Widget _buildPointIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      alignment: Alignment.centerRight,
+      child: Text(
+        "보유 포인트: ${_formatPoints(user?.point ?? 0)} SP",
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemGrid(List<Item> items) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -184,20 +167,22 @@ class _ShopPageState extends State<ShopPage> {
                     shape: BoxShape.circle,
                     color: Colors.white,
                   ),
-                  child: Image.asset(
-                    item["image"]!,
+                  child: Image.network(
+                    item.imageUrl,
                     fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.broken_image),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(item["name"] ?? "",
+                Text(item.title,
                     style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87)),
                 const SizedBox(height: 4),
                 Text(
-                  "${_formatPoints(int.parse(item["price"]!))} SP",
+                  "${_formatPoints(item.price)} SP",
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -211,31 +196,47 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
-  void _showPurchaseDialog(Map<String, String> item) {
-    final itemPrice = int.parse(item["price"]!);
-    final affordable = userPoints >= itemPrice;
+  void _showPurchaseDialog(Item item) {
+    final itemPrice = item.price;
+    final currentPoints = user?.point ?? 0;
+    final affordable = currentPoints >= itemPrice;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("${item["name"]} 구매"),
+          title: Text("${item.title} 구매"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(item["image"]!, width: 60, height: 60),
+              Container(
+                width: 70,
+                height: 70,
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  item["description"] ?? "",
+                  item.description,
                   style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                "가격: ${_formatPoints(itemPrice)} SP",
+                "가격: ${_formatPoints(item.price)} SP",
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               if (!affordable)
@@ -271,18 +272,16 @@ class _ShopPageState extends State<ShopPage> {
             TextButton(
               onPressed: affordable
                   ? () async {
-                      setState(() {
-                        userPoints -= itemPrice;
-                      });
-
-                      // # [업적 연동] 아이템 구매 업적 증가
-                      await AchievementService()
-                          .updateMetaDataWithKey("buy_item", 1);
-
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("${item["name"]} 구매 완료!")),
-                      );
+                      final updated = await _processPurchase(item.price, item);
+                      if (updated) {
+                        // # [업적 연동] 아이템 구매 업적 증가
+                        await AchievementService()
+                            .updateMetaDataWithKey("buy_item", 1);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("${item.title} 구매 완료!")),
+                        );
+                      }
                     }
                   : null,
               child: const Text("구매하기"),
@@ -293,8 +292,73 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
+  Future<bool> _processPurchase(int price, Item item) async {
+    final userId = user?.id;
+    if (userId == null) return false;
+
+    final currentPoints = user?.point ?? 0;
+    final newPoints = currentPoints - price;
+
+    final inventory = Map<String, dynamic>.from(user?.inventory ?? {});
+    final itemsList = List<Map<String, dynamic>>.from(inventory["items"] ?? []);
+
+    final now = DateTime.now().toUtc();
+
+    // ✅ 방어권 2개 제한 로직
+    if (item.title == "방어권") {
+      int defenseItemCount = itemsList
+          .where((inv) => inv["id"] == item.id && inv["isUsed"] == false)
+          .fold(0, (sum, inv) => (inv["quantity"] ?? 0) + sum);
+
+      if (defenseItemCount >= 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("방어권은 2개 이상 구매할 수 없습니다.")),
+        );
+        return false;
+      }
+    }
+
+    bool found = false;
+    for (var inv in itemsList) {
+      if (inv["id"] == item.id && inv["isUsed"] == false) {
+        inv["quantity"] = (inv["quantity"] ?? 1) + 1;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      itemsList.add({
+        "isUsed": false,
+        "id": item.id,
+        "quantity": 1,
+        "metadata": {
+          "purchasedTime": now.toIso8601String(),
+          "dueDate":
+              DateTime(now.year, now.month + 1, now.day).toIso8601String(),
+          "expired": false,
+        }
+      });
+    }
+
+    inventory["items"] = itemsList;
+
+    final updated = await UserService().updateUserByID(userId, {
+      "point": newPoints,
+      "inventory": inventory,
+    });
+
+    setState(() {
+      user = updated;
+    });
+
+    return true;
+  }
+
   String _formatPoints(int points) {
     return points.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]},');
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+        );
   }
 }

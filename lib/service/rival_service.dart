@@ -1,4 +1,7 @@
 import 'package:task_spark/data/friend.dart';
+import 'package:task_spark/data/user.dart';
+import 'package:task_spark/service/task_service.dart';
+import 'package:task_spark/service/user_service.dart';
 import 'package:task_spark/util/pocket_base.dart';
 import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/service/friend_service.dart';
@@ -15,7 +18,7 @@ class RivalService {
       "friend": friend.id,
       "sender": userID,
       "isAccepted": false,
-      "result": RivalRequestStatus.pending.name,
+      "metadata": {"status": "pending"},
     };
     return RivalRequest.fromRecord(
         await PocketB().pocketBase.collection("rivals").create(body: body));
@@ -94,6 +97,16 @@ class RivalService {
     return RivalRequest.fromRecord(result[0]);
   }
 
+  Future<User> loadEnemyUser() async {
+    final rival = await RivalService().loadMatchedRivalInfo();
+    final friendRequestInfo =
+        await FriendService().getFriendByRecordID(rival.friendID);
+    final enemyUserID = await UserService().getOtherUserID(friendRequestInfo);
+    final userInfo = await UserService().getUserByID(enemyUserID);
+
+    return userInfo;
+  }
+
   Future<void> acceptRivalRequest(String recordID) async {
     // 라이벌 요청 수락 처리
     final record = await PocketB()
@@ -141,5 +154,62 @@ class RivalService {
 
   Future<void> deleteRivalRequest(String recordID) async {
     await PocketB().pocketBase.collection("rivals").delete(recordID);
+  }
+
+  Future<List<Map<String, dynamic>>> getMetaData() async {
+    final response = await loadMatchedRivalInfo();
+    final process = response.metadata["process"];
+
+    if (process is List) {
+      return process.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else {
+      return [];
+    }
+  }
+
+  // metadata에서 nDay의 idnex에 해당하는 value를 return ({"user1": {"goal": 13, "done": 11}, "user2": {"goal": 14, "done": 11}})
+  Future<Map<String, dynamic>> getMetaDataWithNDays(int nDay) async {
+    final metadata = await getMetaData();
+
+    return metadata[nDay - 1];
+  }
+
+  Future<void> insertNDayMetaData() async {
+    final userID = await SecureStorage().storage.read(key: "userID");
+    final rivalInfo = await loadMatchedRivalInfo();
+    final metadata = await getMetaData();
+    final enemy = await loadEnemyUser();
+    final _taskService = TaskService(PocketB().pocketBase, UserService());
+
+    final enemyGoal = await _taskService.getTaskGoalCount(enemy.id ?? "");
+    final enemyDone = await _taskService.getTaskDoneCount(enemy.id ?? "");
+    final myGoal = await _taskService.getTaskGoalCount(userID ?? "");
+    final myDone = await _taskService.getTaskDoneCount(userID ?? "");
+    metadata.add({
+      "${enemy.id}": {"goal": enemyGoal, "done": enemyDone},
+      "$userID": {"goal": myGoal, "done": myDone}
+    });
+
+    await PocketB().pocketBase.collection("rivals").update(rivalInfo.id, body: {
+      "metadata": {"process": metadata}
+    });
+  }
+
+  Future<RivalResult> getNDaysResult(int nDay) async {
+    final response = await getMetaDataWithNDays(nDay);
+    final myInfo = await UserService().getProfile();
+    final enemyInfo = await loadEnemyUser();
+
+    final myGoal = (response[myInfo.id]["goal"] ?? 0);
+    final myDone = (response[myInfo.id]["done"] ?? 0);
+    final enemyGoal = (response[enemyInfo.id]["goal"] ?? 0);
+    final enemyDone = (response[enemyInfo.id]["done"] ?? 0);
+
+    final myRatio = myGoal == 0 ? 0 : myDone / myGoal;
+    final enemyRatio = enemyGoal == 0 ? 0 : enemyDone / enemyGoal;
+
+    if (myRatio > enemyRatio) return RivalResult.win;
+    if (myRatio == enemyRatio) return RivalResult.draw;
+    return RivalResult.lose;
   }
 }
