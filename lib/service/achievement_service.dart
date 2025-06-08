@@ -71,7 +71,7 @@ class AchievementService {
     final diamondValue = achievement.amount["diamond"] ?? 0;
 
     if (achievement.isOnce == true) {
-      if (currentValue <= diamondValue) {
+      if (currentValue < diamondValue) {
         return 0;
       } else {
         return 5;

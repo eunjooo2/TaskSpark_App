@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:pocketbase/pocketbase.dart';
 
+enum RivalResult { win, draw, lose }
+
 class RivalRequest {
   String id;
   DateTime start;
@@ -57,7 +59,7 @@ class RivalRequest {
       friendID: record.data["friend"],
       isAccepted: record.data["isAccepted"],
       senderID: record.data["sender"],
-      metadata: record.data["metadata"],
+      metadata: record.data["metadata"] as Map<String, dynamic>,
       created: DateTime.parse(record.data["created"]),
     );
   }

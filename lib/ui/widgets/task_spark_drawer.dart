@@ -46,7 +46,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const SplashPage()),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -54,9 +54,7 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     return SizedBox(
       height: 6.h,
       child: FilledButton(
-        onPressed: () {
-          onPressed();
-        },
+        onPressed: () => onPressed(),
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
         ),
@@ -117,8 +115,10 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
   Widget _buildExpAndPointsRow() {
     final currentExp = user.exp?.toInt() ?? 0;
     final currentLevel = UserService().convertExpToLevel(currentExp);
-    final nextLevelExp = 50 * (currentLevel + 1) * (currentLevel + 1) + 100 * (currentLevel + 1);
-    final currentLevelBaseExp = 50 * currentLevel * currentLevel + 100 * currentLevel;
+    final nextLevelExp =
+        UserService().experienceToNextLevel(currentExp) + currentExp;
+    final currentLevelBaseExp =
+        50 * currentLevel * currentLevel + 100 * currentLevel;
     final expIntoLevel = currentExp - currentLevelBaseExp;
     final expRequired = nextLevelExp - currentLevelBaseExp;
     final expRate = expIntoLevel / expRequired;
@@ -138,9 +138,10 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
                       color: Colors.white)),
               Row(
                 children: [
-                  const FaIcon(FontAwesomeIcons.coins, size: 14, color: Colors.amber),
+                  const FaIcon(FontAwesomeIcons.coins,
+                      size: 14, color: Colors.amber),
                   SizedBox(width: 1.w),
-                  Text("${user.points ?? 0}P",
+                  Text("${user.point ?? 0}P",
                       style: TextStyle(
                           fontSize: 0.5.cm,
                           fontWeight: FontWeight.bold,
@@ -177,95 +178,98 @@ class _TaskSparkDrawerState extends State<TaskSparkDrawer> {
     return Drawer(
       child: isLoading == false
           ? ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          Theme(
-            data: ThemeData(
-              dividerColor: Colors.transparent,
-              dividerTheme: const DividerThemeData(
-                color: Colors.transparent,
-              ),
-            ),
-            child: UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              accountName: Text(
-                "${user.name}#${user.tag}",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              accountEmail: Text(
-                user.email ?? "",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage(user.avatarUrl),
-              ),
-            ),
-          ),
-          _buildExpAndPointsRow(),
-          Padding(
-            padding: EdgeInsets.only(top: 1.5.h),
-            child: Column(
+              padding: EdgeInsets.zero,
               children: [
-                _buildDividerWithText("계정", context),
-                _getDrawerIconRow(FontAwesomeIcons.pencil, "프로필 편집", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditProfilePage(user: user),
+                Theme(
+                  data: ThemeData(
+                    dividerColor: Colors.transparent,
+                    dividerTheme: const DividerThemeData(
+                      color: Colors.transparent,
                     ),
-                  );
-                }),
-                _getDrawerIconRow(FontAwesomeIcons.gifts, "인벤토리", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InventoryPage(user: user),
+                  ),
+                  child: UserAccountsDrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                  );
-                }),
-                _getDrawerIconRow(FontAwesomeIcons.medal, "업적", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AchievementPage(
-                        nickname: user.nickname ?? '익명',
-                        expRate: 0.0,
-                        myUser: user,
+                    accountName: Text(
+                      "${user.nickname}#${user.tag}",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
-                  );
-                }),
-                _getDrawerIconRow(FontAwesomeIcons.rightFromBracket, "로그아웃", () {
-                  logout();
-                }),
-                _buildDividerWithText("설정", context),
-                _getDrawerIconRow(FontAwesomeIcons.gear, "앱 설정", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AppSettingsPage(),
+                    accountEmail: Text(
+                      user.email ?? "",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ),
-                  );
-                }),
-                _getDrawerIconRow(FontAwesomeIcons.userLock, "차단 친구 설정", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BlockedUserPage(),
+                    currentAccountPicture: CircleAvatar(
+                      backgroundImage:
+                          NetworkImage("https://pb.aroxu.me/${user.avatar}"),
                     ),
-                  );
-                }),
+                  ),
+                ),
+                _buildExpAndPointsRow(),
+                Padding(
+                  padding: EdgeInsets.only(top: 1.5.h),
+                  child: Column(
+                    children: [
+                      _buildDividerWithText("계정", context),
+                      _getDrawerIconRow(FontAwesomeIcons.pencil, "프로필 편집", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfilePage(user: user),
+                          ),
+                        );
+                      }),
+                      _getDrawerIconRow(FontAwesomeIcons.gifts, "인벤토리", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InventoryPage(),
+                          ),
+                        );
+                      }),
+                      _getDrawerIconRow(FontAwesomeIcons.medal, "업적", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AchievementPage(
+                              nickname: user.nickname ?? '익명',
+                              expRate: 0.0,
+                              myUser: user,
+                            ),
+                          ),
+                        );
+                      }),
+                      _getDrawerIconRow(
+                          FontAwesomeIcons.rightFromBracket, "로그아웃", () {
+                        logout();
+                      }),
+                      _buildDividerWithText("설정", context),
+                      _getDrawerIconRow(FontAwesomeIcons.gear, "앱 설정", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AppSettingsPage(),
+                          ),
+                        );
+                      }),
+                      _getDrawerIconRow(FontAwesomeIcons.userLock, "차단 친구 설정",
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BlockedUserPage(),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
               ],
-            ),
-          ),
-        ],
-      )
+            )
           : const Center(child: CircularProgressIndicator()),
     );
   }

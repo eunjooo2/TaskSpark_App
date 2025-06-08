@@ -81,10 +81,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   radius: 10.w,
                   backgroundImage: _selectedImage != null
                       ? FileImage(_selectedImage!)
-                      : widget.user.avatar != null && widget.user.avatar!.isNotEmpty
-                      ? NetworkImage("https://pb.aroxu.me/${widget.user.avatar!}")
-                      : const AssetImage("assets/images/default_profile.png")
-                  as ImageProvider,
+                      : widget.user.avatar != null &&
+                              widget.user.avatar!.isNotEmpty
+                          ? NetworkImage(
+                              "https://pb.aroxu.me/${widget.user.avatar!}")
+                          : const AssetImage(
+                                  "assets/images/default_profile.png")
+                              as ImageProvider,
                 ),
               ),
               SizedBox(height: 4.h),

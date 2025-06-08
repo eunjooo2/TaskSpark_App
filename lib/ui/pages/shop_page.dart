@@ -17,6 +17,7 @@ class _ShopPageState extends State<ShopPage> {
   List<Item> items = [];
   String searchQuery = "";
   bool isLoading = true;
+  String? _sortOption = "name";
 
   @override
   void initState() {
@@ -40,37 +41,81 @@ class _ShopPageState extends State<ShopPage> {
       return item.title.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
 
+    filteredItems.sort((a, b) {
+      switch (_sortOption) {
+        case 'price_asc':
+          return a.price.compareTo(b.price);
+        case 'price_desc':
+          return b.price.compareTo(a.price);
+        case 'name':
+        default:
+          return a.title.compareTo(b.title);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.black, toolbarHeight: 0),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildPointIndicator(),
-            _buildItemGrid(filteredItems),
-          ],
-        ),
-      ),
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildPointIndicator(),
+                  _buildItemGrid(filteredItems),
+                ],
+              ),
+            ),
     );
   }
 
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: '아이템 검색...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-        ),
-        onChanged: (value) {
-          setState(() {
-            searchQuery = value;
-          });
-        },
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: '아이템 검색...',
+                prefixIcon: const Icon(Icons.search),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text("정렬: "),
+          DropdownButton<String>(
+            value: _sortOption,
+            items: const [
+              DropdownMenuItem(
+                value: 'name',
+                child: Text("이름순"),
+              ),
+              DropdownMenuItem(
+                value: 'price_asc',
+                child: Text("가격 낮은순"),
+              ),
+              DropdownMenuItem(
+                value: 'price_desc',
+                child: Text("가격 높은순"),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _sortOption = value!;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
@@ -80,7 +125,7 @@ class _ShopPageState extends State<ShopPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       alignment: Alignment.centerRight,
       child: Text(
-        "보유 포인트: ${_formatPoints(user?.points ?? 0)} SP",
+        "보유 포인트: ${_formatPoints(user?.point ?? 0)} SP",
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
@@ -125,7 +170,7 @@ class _ShopPageState extends State<ShopPage> {
                     item.imageUrl,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image),
+                        const Icon(Icons.broken_image),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -152,7 +197,7 @@ class _ShopPageState extends State<ShopPage> {
 
   void _showPurchaseDialog(Item item) {
     final itemPrice = item.price;
-    final currentPoints = user?.points ?? 0;
+    final currentPoints = user?.point ?? 0;
     final affordable = currentPoints >= itemPrice;
 
     showDialog(
@@ -163,11 +208,21 @@ class _ShopPageState extends State<ShopPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.network(
-                item.imageUrl,
-                width: 60,
-                height: 60,
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+              Container(
+                width: 70,
+                height: 70,
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
               Padding(
@@ -180,7 +235,7 @@ class _ShopPageState extends State<ShopPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                "가격: ${_formatPoints(itemPrice)} SP",
+                "가격: ${_formatPoints(item.price)} SP",
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               if (!affordable)
@@ -201,14 +256,14 @@ class _ShopPageState extends State<ShopPage> {
             TextButton(
               onPressed: affordable
                   ? () async {
-                final updated = await _processPurchase(item.price, item);
-                if (updated) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("${item.title} 구매 완료!")),
-                  );
-                }
-              }
+                      final updated = await _processPurchase(item.price, item);
+                      if (updated) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("${item.title} 구매 완료!")),
+                        );
+                      }
+                    }
                   : null,
               child: const Text("구매하기"),
             ),
@@ -222,15 +277,29 @@ class _ShopPageState extends State<ShopPage> {
     final userId = user?.id;
     if (userId == null) return false;
 
-    final currentPoints = user?.points ?? 0;
+    final currentPoints = user?.point ?? 0;
     final newPoints = currentPoints - price;
 
     final inventory = Map<String, dynamic>.from(user?.inventory ?? {});
     final itemsList = List<Map<String, dynamic>>.from(inventory["items"] ?? []);
 
     final now = DateTime.now().toUtc();
-    bool found = false;
 
+    // ✅ 방어권 2개 제한 로직
+    if (item.title == "방어권") {
+      int defenseItemCount = itemsList
+          .where((inv) => inv["id"] == item.id && inv["isUsed"] == false)
+          .fold(0, (sum, inv) => (inv["quantity"] ?? 0) + sum);
+
+      if (defenseItemCount >= 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("방어권은 2개 이상 구매할 수 없습니다.")),
+        );
+        return false;
+      }
+    }
+
+    bool found = false;
     for (var inv in itemsList) {
       if (inv["id"] == item.id && inv["isUsed"] == false) {
         inv["quantity"] = (inv["quantity"] ?? 1) + 1;
@@ -246,7 +315,8 @@ class _ShopPageState extends State<ShopPage> {
         "quantity": 1,
         "metadata": {
           "purchasedTime": now.toIso8601String(),
-          "dueDate": DateTime(now.year, now.month + 1, now.day).toIso8601String(),
+          "dueDate":
+              DateTime(now.year, now.month + 1, now.day).toIso8601String(),
           "expired": false,
         }
       });
@@ -255,7 +325,7 @@ class _ShopPageState extends State<ShopPage> {
     inventory["items"] = itemsList;
 
     final updated = await UserService().updateUserByID(userId, {
-      "points": newPoints,
+      "point": newPoints,
       "inventory": inventory,
     });
 
@@ -268,8 +338,8 @@ class _ShopPageState extends State<ShopPage> {
 
   String _formatPoints(int points) {
     return points.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]},',
-    );
+        );
   }
 }
