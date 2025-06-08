@@ -228,6 +228,9 @@ class _TaskPageState extends State<TaskPage> {
                               final task = _filteredTasks[idx];
                               return TaskCard(
                                 task: task,
+                                category: _categories.where((e) {
+                                  return e.id == task.categoryId;
+                                }).first,
                                 onChanged: (_) => _handleToggleDone(task),
                                 onEdit: () => _openTaskForm(task: task),
                                 onDelete: () => _handleDelete(task),

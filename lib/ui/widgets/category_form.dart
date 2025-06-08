@@ -59,7 +59,8 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
       _showSnack("이모지는 하나만 입력해주세요.");
       return;
     }
-    if (color.isNotEmpty && !RegExp(r'^#[0-9A-Fa-f]{6}\$').hasMatch(color)) {
+    if (color.isNotEmpty &&
+        !RegExp(r'^#[0-9A-F]{6}$', caseSensitive: false).hasMatch(color)) {
       _showSnack("색상 코드는 #RRGGBB 형식이어야 합니다.");
       return;
     }
