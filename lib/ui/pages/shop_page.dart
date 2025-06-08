@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:task_spark/service/achievement_service.dart';
 import '../../data/static/shop_item_data.dart';
 
 class ShopPage extends StatefulWidget {
@@ -253,12 +253,32 @@ class _ShopPageState extends State<ShopPage> {
               onPressed: () => Navigator.pop(context),
               child: const Text("취소"),
             ),
+            // 수정 전 >>>
+            // TextButton(
+            //   onPressed: affordable
+            //       ? () {
+            //           setState(() {
+            //             userPoints -= itemPrice;
+            //           });
+            //           Navigator.pop(context);
+            //           ScaffoldMessenger.of(context).showSnackBar(
+            //             SnackBar(content: Text("${item["name"]} 구매 완료!")),
+            //           );
+            //         }
+            //       : null,
+            //   child: const Text("구매하기"),
+            // ),
             TextButton(
               onPressed: affordable
-                  ? () {
+                  ? () async {
                       setState(() {
                         userPoints -= itemPrice;
                       });
+
+                      // # [업적 연동] 아이템 구매 업적 증가
+                      await AchievementService()
+                          .updateMetaDataWithKey("buy_item", 1);
+
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("${item["name"]} 구매 완료!")),

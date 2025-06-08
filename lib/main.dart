@@ -42,7 +42,7 @@ class _TaskSparkAppState extends State<TaskSparkApp> with RouteAware {
   }
 
   void refreshDataIfNeeded() {
-    print("뒤에서 돌아왔음! 상태 갱신할게요");
+    print("상태 갱신할게요");
   }
 
   @override

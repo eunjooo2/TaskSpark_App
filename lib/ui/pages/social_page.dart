@@ -98,6 +98,10 @@ class _SocialPageState extends State<SocialPage>
     });
     if (isMatched == true) {
       final rival = await RivalService().loadMatchedRivalInfo();
+
+      // # 업적: 라이벌 승리 체크!
+      await RivalService().checkRivalVictory(rival);
+
       final friendRequestInfo =
           await FriendService().getFriendByRecordID(rival.friendID);
       final enemyUserID = await UserService().getOtherUserID(friendRequestInfo);

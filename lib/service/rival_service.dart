@@ -3,6 +3,7 @@ import 'package:task_spark/util/pocket_base.dart';
 import 'package:task_spark/util/secure_storage.dart';
 import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/data/rival.dart';
+import 'package:task_spark/service/achievement_service.dart';
 
 class RivalService {
   Future<RivalRequest> sendRivalRequest(
@@ -94,14 +95,43 @@ class RivalService {
   }
 
   Future<void> acceptRivalRequest(String recordID) async {
-    await PocketB()
+    // 라이벌 요청 수락 처리
+    final record = await PocketB()
         .pocketBase
         .collection("rivals")
         .update(recordID, body: {"isAccepted": true});
 
+    // 현재 로그인한 사용자 ID 가져오기
+    final String userID = (await SecureStorage().storage.read(key: "userID"))!;
+
+    // 요청 보낸 사람 ID
+    final String? senderID = record.get("sender")?["id"];
+    // 요청 받은 친구 ID
+    final String? friendID = record.get("friend")?["id"];
+    // # 조건 1: 내가 라이벌 요청을 보냈고, 상대가 수락한 경우
+    // # 조건 2: 상대가 나에게 보냈고, 내가 수락한 경우
+    if (userID == senderID || userID == friendID) {
+      await AchievementService().updateMetaDataWithKey("rival_challenge", 1);
+      print("[업적] rival_challenge +1");
+    }
+
     await _deleteRivalRequest();
   }
 
+  Future<void> checkRivalVictory(RivalRequest request) async {
+    final userID = await SecureStorage().storage.read(key: "userID") ?? "";
+
+    // 승자인 경우에만 업적 증가
+    if ((request.result == RivalRequestStatus.sender_win &&
+            request.senderID == userID) ||
+        (request.result == RivalRequestStatus.receiver_win &&
+            request.friendID == userID)) {
+      await AchievementService().updateMetaDataWithKey("rival_win", 1);
+      print("[업적] rival_win +1");
+    }
+  }
+
+// 라이벌 도전 수락 후, 기존에 보냈던 도전 요청들을 삭제
   Future<void> _deleteRivalRequest() async {
     final records = await loadSendRivalRequest();
     for (int i = 0; i < records.length; i++) {

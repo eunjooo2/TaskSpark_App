@@ -1,7 +1,13 @@
 import 'dart:convert';
 import 'package:pocketbase/pocketbase.dart';
 
-enum RivalRequestStatus { pending, draw, sender, receiver }
+// # 수정 전: enum RivalRequestStatus { pending, draw, sender, receiver }
+enum RivalRequestStatus {
+  pending,
+  sender_win,
+  receiver_win,
+  draw,
+}
 
 extension RivalRequestStatusExtension on RivalRequestStatus {
   String get name => toString().split('.').last;
@@ -18,6 +24,7 @@ class RivalRequest {
   String id;
   DateTime start;
   DateTime end;
+
   String friendID;
   bool isAccepted;
   String senderID;
@@ -70,7 +77,11 @@ class RivalRequest {
       friendID: record.data["friend"],
       isAccepted: record.data["isAccepted"],
       senderID: record.data["sender"],
-      result: RivalRequestStatusExtension.fromString(record.data["result"]),
+      //# 수정 전: result: RivalRequestStatusExtension.fromString(record.data["result"]),
+      result: RivalRequestStatus.values.firstWhere(
+        (e) => e.name == record.data["result"],
+        orElse: () => RivalRequestStatus.pending,
+      ), // PocketBase에서 가져온 문자열(String) 결과값을 enum으로 변환
       created: DateTime.parse(record.data["created"]),
     );
   }
