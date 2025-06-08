@@ -11,6 +11,7 @@ import 'package:task_spark/service/friend_service.dart';
 import 'package:task_spark/main.dart';
 import 'package:task_spark/service/rival_service.dart';
 import 'package:task_spark/service/user_service.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -97,8 +98,10 @@ class _SocialPageState extends State<SocialPage>
   }
 
   Future<void> getRival() async {
-    final sentRivalRequests = await RivalService().loadSendRivalRequest();
-    final receiveRivalRequests = await RivalService().loadReceiveRivalRequest();
+    final sentRivalRequests =
+        await RivalService().loadRivalRequests(sent: true);
+    final receiveRivalRequests =
+        await RivalService().loadRivalRequests(sent: false);
 
     if (!mounted) return;
 
