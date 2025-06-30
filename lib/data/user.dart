@@ -109,7 +109,7 @@ class User {
     );
   }
 
-  /// ✅ avatarUrl 생성기 (정상 이미지 렌더링용)
+  /// avatarUrl 생성기 (정상 이미지 렌더링용)
   String get avatarUrl {
     if (avatar == null ||
         avatar!.isEmpty ||

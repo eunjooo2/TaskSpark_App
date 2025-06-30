@@ -41,8 +41,6 @@ class FriendService {
 
     // # [업적 연동] 친구 추가 업적 증가
     await AchievementService().increaseAchievement("add_friend");
-    //   return await PocketB().pocketBase.collection('friends').create(body: body);
-    // }  이거 였는데.. 안에 넣음
 
     return record;
   }
@@ -57,10 +55,6 @@ class FriendService {
       "isAccepted": true,
     });
   }
-
-// acceptFriendRequest(...)  // ✅ 수락
-// → rejectFriendRequest(...)  // ✅ 거절 (추가해야 함)
-// → checkIsFriend(...)        // ✅ 친구 여부 확인
 
   /// # 친구 요청 거절 (요청 삭제)
   Future<void> rejectFriendRequest(String recordID) async {

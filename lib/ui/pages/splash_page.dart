@@ -96,37 +96,32 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "google",
                                 title: "Google 로그인",
                                 onPressed: () async {
-                                  final userService = UserService(); // #
-                                  final authData = await UserService()
+                                  final userService = UserService();
+                                  final authData = await userService
                                       .sendLoginRequest("google");
+
                                   if (authData.token != "") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const MainPage(),
-                                      ),
-                                    );
                                     await SecureStorage().storage.write(
                                           key: "userID",
                                           value: authData.record.id,
                                         );
 
                                     await SecureStorage().storage.write(
-                                        key: "accessToken",
-                                        value: authData.token);
-                                    // # 로그인 스트릭 처리
-                                    final user = await userService.getProfile();
-                                    await userService.updateLoginStreak(user);
+                                          key: "accessToken",
+                                          value: authData.token,
+                                        );
 
-                                    // # 마지막에 MainPage로 이동!
-                                    Navigator.push(
+                                    final user = await userService.getProfile();
+                                    await userService
+                                        .updateLoginStreak(user); //  로그인 스트릭 반영
+
+                                    Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const MainPage(),
-                                      ),
+                                          builder: (_) => const MainPage()),
                                     );
                                   } else {
-                                    print(authData);
+                                    // 로그인 실패 처리
                                   }
                                 },
                               ),
@@ -135,37 +130,32 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                 buttonType: "kakao",
                                 title: "Kakao 로그인",
                                 onPressed: () async {
-                                  final userService = UserService(); // #
-                                  final authData = await UserService()
+                                  final userService = UserService();
+                                  final authData = await userService
                                       .sendLoginRequest("kakao");
+
                                   if (authData.token != "") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const MainPage(),
-                                      ),
-                                    );
                                     await SecureStorage().storage.write(
                                           key: "userID",
                                           value: authData.record.id,
                                         );
 
                                     await SecureStorage().storage.write(
-                                        key: "accessToken",
-                                        value: authData.token);
-                                    // # login_streak 업적 반영
-                                    final user = await userService.getProfile();
-                                    await userService.updateLoginStreak(user);
+                                          key: "accessToken",
+                                          value: authData.token,
+                                        );
 
-                                    // # 메인 페이지로 이동
-                                    Navigator.push(
+                                    final user = await userService.getProfile();
+                                    await userService
+                                        .updateLoginStreak(user); // 로그인 스트릭 반영
+
+                                    Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const MainPage(),
-                                      ),
+                                          builder: (_) => const MainPage()),
                                     );
                                   } else {
-                                    // 로그인 실패 다이얼로그 처리
+                                    // 로그인 실패 처리
                                   }
                                 },
                               ),

@@ -287,6 +287,6 @@ class UserService {
     });
 
     await AchievementService().updateMetaDataWithKey("login_streak", count);
-    print("📅 로그인 스트릭 +$count");
+    print("로그인 스트릭 +$count");
   }
 }
